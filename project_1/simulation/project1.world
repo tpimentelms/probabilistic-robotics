@@ -1,0 +1,40 @@
+include "../Stage-3.2.2-Source/worlds/map.inc"
+include "pioneer.inc"
+include "../Stage-3.2.2-Source/worlds/sick.inc"
+
+
+# configure the GUI window
+window
+(
+	size [ 700.000 700.000 ]
+	scale 35
+)
+
+
+# load an environment bitmap
+
+floorplan
+(
+	bitmap "Project1.png"
+	size [25 25 1.5]
+)
+
+
+pioneer2dx
+(		  
+  # can refer to the robot by this name
+  name "r0"
+  pose [ -7 -7 0 45 ] 
+
+  sicklaser(   
+      #ctrl "lasernoise"  # uncomment this line to run a laser noise generator
+  )
+ 
+  #ctrl "wander"
+
+  # report error-free position in world coordinates
+  localization "gps"
+  localization_origin [ 0 0 0 0 ]
+)
+#g++ -o empty `pkg-config --cflags playerc++` empty.cpp `pkg-config --libs playerc++`
+
