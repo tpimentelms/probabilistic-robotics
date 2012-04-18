@@ -1,7 +1,9 @@
-include "../Stage-3.2.2-Source/worlds/map.inc"
-include "pioneer.inc"
-include "../Stage-3.2.2-Source/worlds/sick.inc"
+# Authors: Guilherme Anselmo, Matheus V. Portela, Tiago Pimentel
+# Date: 17 Apr 2012
 
+include "map.inc"
+include "pioneer.inc"
+include "sick.inc"
 
 # configure the GUI window
 window
@@ -10,16 +12,14 @@ window
 	scale 35
 )
 
-
 # load an environment bitmap
-
 floorplan
 (
-	bitmap "Project1.png"
+	bitmap "project1_map.png"
 	size [25 25 1.5]
 )
 
-
+# set pioneer robot features
 pioneer2dx
 (		  
   # can refer to the robot by this name
@@ -29,12 +29,9 @@ pioneer2dx
   sicklaser(   
       #ctrl "lasernoise"  # uncomment this line to run a laser noise generator
   )
- 
-  #ctrl "wander"
 
   # report error-free position in world coordinates
   localization "gps"
   localization_origin [ 0 0 0 0 ]
 )
-#g++ -o empty `pkg-config --cflags playerc++` empty.cpp `pkg-config --libs playerc++`
 
