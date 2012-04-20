@@ -1,0 +1,21 @@
+
+
+void velocityMotionModel()
+{
+	double x, y, th;
+	double deltaX, deltaY, deltaTh;
+	double v, w;
+	
+	v = r.getVel();
+	w = r.getRotVel();
+	
+	deltaTh = w*deltaTh;
+	deltaX = -v/w*sin(th) + v/w*sin(th + w*deltaTh);
+	deltaY = v/w*cos(th) - v/w*cos(th + w*deltaTh);
+	
+	x = r.getX() + deltaX;
+	y = r.getY() + deltaY;
+	th = r.getTh() + deltaTh;
+	
+	r.setMeanPose(x, y, th);
+}

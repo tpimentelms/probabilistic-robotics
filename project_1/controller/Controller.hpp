@@ -4,3 +4,7 @@
 
 using namespace std;
 using namespace PlayerCc;
+
+int main();
+
+void move(double newV, double newW);

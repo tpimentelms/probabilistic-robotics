@@ -25,6 +25,7 @@ class Robot
 		void printInfo();
 		
 		void getTrueState();
+		void setPose(double x, double y, double th)
 	
 	private:
 		double x, y, th;

@@ -76,3 +76,11 @@ void Robot::getTrueState()
 	this->setVel(p2dProxy.GetXSpeed());
 	this->setRotVel(p2dProxy.GetYawSpeed());
 }
+
+
+void Robot::setPose(double x, double y, double th)
+{
+	this->setX(x);
+	this->setY(y);
+	this->setTh(th);
+}

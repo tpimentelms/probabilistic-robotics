@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <time.h>
 #include <libplayerc++/playerc++.h>
+#include <Robot.hpp>
+
 
 void Wander(double *forwardSpeed, double *turnSpeed)
 {
@@ -26,6 +28,8 @@ int main(int argc, char *argv[])
 {
 		/*need to do this line in c++ only*/
 		using namespace PlayerCc;
+        
+		PlayerClient robot("localhost");
         
         Position2dProxy p2dProxy(&robot,0);
         LaserProxy laserProxy(&robot,0);
