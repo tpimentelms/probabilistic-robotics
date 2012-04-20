@@ -25,7 +25,12 @@ class Robot
 		void printInfo();
 		
 		void getTrueState();
+
+		
+		void laser();
+
 		void setPose(double x, double y, double th)
+
 	
 	private:
 		double x, y, th;

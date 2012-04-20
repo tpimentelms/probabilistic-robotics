@@ -77,10 +77,21 @@ void Robot::getTrueState()
 	this->setRotVel(p2dProxy.GetYawSpeed());
 }
 
-
 void Robot::setPose(double x, double y, double th)
 {
 	this->setX(x);
 	this->setY(y);
 	this->setTh(th);
 }
+
+void Robot::laser()
+{
+	LOG(LEVEL_WARN) << "Laser info";
+	LOG(LEVEL_INFO) << "LaserCount = " << laserProxy.GetCount();
+	LOG(LEVEL_INFO) << "Laser[0]   = " << laserProxy.GetRange(0);
+}
+
+
+
+
+
