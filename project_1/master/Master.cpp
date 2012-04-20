@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
 	// Start controller
 	string controller_path = cwd + string("/../controller/");
 	LOG(LEVEL_DEBUG) << "Controller path: " << controller_path;
-	command = string("gnome-terminal --working-directory=") + controller_path + string(" -x bash -c \"./project1; bash\"");
+	command = string("gnome-terminal --working-directory=") + controller_path + string(" -x bash -c \"./Controller; bash\"");
 	
 	LOG(LEVEL_INFO) << command.c_str();
 	system(command.c_str());

@@ -1,4 +1,8 @@
 #include <ProcessLogger.h>
+#include <libplayerc++/playerc++.h>
+
+extern PlayerCc::Position2dProxy p2dProxy;
+extern PlayerCc::LaserProxy laserProxy;
 
 class Robot
 {
@@ -17,6 +21,10 @@ class Robot
 		void setTh(double th);
 		void setVel(double v);
 		void setRotVel(double w);
+	
+		void printInfo();
+		
+		void getTrueState();
 	
 	private:
 		double x, y, th;
