@@ -7,6 +7,7 @@
 #include <Master.h>
 #include <Config.h>
 #include <ProcessLogger.h>
+#include <unistd.h>
 
 int main(int argc, char* argv[])
 {
@@ -24,6 +25,8 @@ int main(int argc, char* argv[])
 	
 	LOG(LEVEL_INFO) << command.c_str();
 	system(command.c_str());
+	
+	sleep(1);
 	
 	// Start controller
 	string controller_path = cwd + string("/../controller/");
