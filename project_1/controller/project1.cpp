@@ -4,15 +4,6 @@
 #include <time.h>
 #include <libplayerc++/playerc++.h>
 
-
-/**
-Randomly assigns new speeds into the given addresses.
-This function will always write to the given addresses.
-@param *forwardSpeed the address of the forward speed
-variable you want this function to change.
-@param *turnSpeed the address of the turn speed variable
-you want this function to change.
-*/
 void Wander(double *forwardSpeed, double *turnSpeed)
 {
         int maxSpeed = 1;
@@ -33,10 +24,9 @@ void Wander(double *forwardSpeed, double *turnSpeed)
 
 int main(int argc, char *argv[])
 {
-        /*need to do this line in c++ only*/
-        using namespace PlayerCc;
-        PlayerClient robot("localhost");
-
+		/*need to do this line in c++ only*/
+		using namespace PlayerCc;
+        
         Position2dProxy p2dProxy(&robot,0);
         LaserProxy laserProxy(&robot,0);
         

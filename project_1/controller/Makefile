@@ -1,9 +1,9 @@
 CXX = g++
 CPPFLAGS = -Wall
 
-SOURCES = project1.cpp
+SOURCES =  Robot.cpp Controller.cpp
 OBJECTS = $(patsubst %.cpp, %.o, $(SOURCES))
-EXECUTABLE = project1
+EXECUTABLE = Controller
 
 SHARED_OBJ = ../shared/Config.o ../shared/ProcessLogger.o
 BOOST_LIBS = -lboost_thread -lboost_system -lboost_filesystem -lboost_regex -lboost_program_options
