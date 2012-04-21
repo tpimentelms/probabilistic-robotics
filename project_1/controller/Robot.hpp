@@ -29,7 +29,7 @@ class Robot
 		
 		void laser();
 
-		void setPose(double x, double y, double th)
+		void setPose(double x, double y, double th);
 
 	
 	private:
