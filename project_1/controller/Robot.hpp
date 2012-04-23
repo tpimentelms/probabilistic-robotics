@@ -34,5 +34,5 @@ class Robot
 	private:
 		double x, y, th;
 		double v, w;
-		vector<double> laserArray(laserProxy.GetCount());
+		std::vector<double> laserArray(laserProxy.GetCount(), 1);
 };

@@ -92,7 +92,7 @@ void Robot::updateLaserArray()
 	
 	for (counter = 0; counter<laserProxy.GetCount(); counter++)
 	{
-		this->laserArray[counter] = laserProxy.GetRange(counter);
+		this->laserArray[1] = 1;//.assign(1, laserProxy.GetRange(counter));
 	}
 }
 
