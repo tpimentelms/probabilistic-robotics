@@ -23,7 +23,7 @@ int main()
 		
 		r.printInfoComparation();
 		r.setVel(1);
-		r.setRotVel(2);
+		r.setRotVel(0);
 		
 		// set desired v and w
 		move(r.getVel(), r.getRotVel());
@@ -38,8 +38,23 @@ int main()
 
 void move(double v, double w)
 {
-	r.setVel(v);
-	r.setRotVel(w);
+	double velError, rotVelError;
+	
+	//Make velocity error
+	srand(time(NULL));
+	velError = ((rand() % (100000))*(2*v/10))/100000;
+	velError = velError - v/10;
+	
+	r.setVel(v + velError);
+	
+	//Make rotation error
+	rotVelError = (rand() % (100000))*(2*w/10)/100000;
+	rotVelError = rotVelError - w/10;
+	srand(time(NULL));
+	
+	LOG(LEVEL_WARN) << "velError = " << velError << " rotError = " << rotVelError;
+	r.setRotVel(w + rotVelError);
+	
 	p2dProxy.SetSpeed(r.getVel(), r.getRotVel());
 }
 
