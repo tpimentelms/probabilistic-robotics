@@ -90,9 +90,11 @@ void Robot::updateLaserArray()
 	
 	int counter;
 	
+	this->laserArray.clear();
+	
 	for (counter = 0; counter<laserProxy.GetCount(); counter++)
 	{
-		this->laserArray[1] = 1;//.assign(1, laserProxy.GetRange(counter));
+		this->laserArray.push_back (laserProxy.GetRange(counter));
 	}
 }
 
