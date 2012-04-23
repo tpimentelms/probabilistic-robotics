@@ -24,15 +24,13 @@ int main()
 		r.printInfo();
 		r.setVel(1);
 		r.setRotVel(2);
-		r.laser();
 		
 		// set desired v and w
-
 		p2dProxy.SetSpeed(0, 0);
+		
 		//p2dProxy.SetSpeed(r.getVel(), r.getRotVel());
-
 		move(r.getVel(), r.getRotVel());
-
+		sense();
 
 	}
 	
@@ -44,4 +42,9 @@ void move(double v, double w)
 	r.setVel(v);
 	r.setRotVel(w);
 	p2dProxy.SetSpeed(r.getVel(), r.getRotVel());
+}
+
+void sense()
+{
+	r.updateLaserArray();
 }

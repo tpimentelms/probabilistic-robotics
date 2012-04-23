@@ -27,11 +27,9 @@ class Robot
 		
 		void getTrueState();
 
-		
-		void laser();
-
 		void setPose(double x, double y, double th);
 
+		void updateLaserArray();
 	
 	private:
 		double x, y, th;
