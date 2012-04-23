@@ -96,6 +96,11 @@ void Robot::updateLaserArray()
 	{
 		this->laserArray.push_back (laserProxy.GetRange(counter));
 	}
+	LOG(LEVEL_INFO) << "Number of Laser = " << laserProxy.GetCount();
+	LOG(LEVEL_INFO) << "Vector Size = " << this->laserArray.size();
+	
+	if (this->laserArray.size() > 100)
+		LOG(LEVEL_INFO) << "Laser[250] = " << this->laserArray.at(250);
 }
 
 
