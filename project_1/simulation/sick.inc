@@ -3,8 +3,8 @@ define sicklaser laser
 (
   # laser-specific properties
   # factory settings for LMS200	
-  range_max 8.0
-  fov 180.0
+  range_max 3.0
+  fov 360.0
   samples 361
 
   #samples 90 # still useful but much faster to compute
