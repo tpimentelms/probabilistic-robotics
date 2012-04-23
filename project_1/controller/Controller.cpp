@@ -13,7 +13,7 @@ Robot r;
 int main()
 {
     laserProxy.RequestGeom();
-
+	
     while(true)
     {
 		playerRobot.Read();
@@ -23,14 +23,14 @@ int main()
 		
 		r.printInfoComparation();
 		r.setVel(1);
-		r.setRotVel(0);
+		r.setRotVel(2);
 		
 		// set desired v and w
 		move(r.getVel(), r.getRotVel());
 		
 		// update laser measurement array
 		sense();
-
+		
 	}
 	
 	return 0;
@@ -38,29 +38,27 @@ int main()
 
 void move(double v, double w)
 {
-	double velError, rotVelError;
-	
-	//Make velocity error
-	srand(time(NULL));
-	velError = ((rand() % (100000))*(2*v/10))/100000;
-	velError = velError - v/10;
-	
-	r.setVel(v + velError);
-	
-	//Make rotation error
-	rotVelError = (rand() % (100000))*(2*w/10)/100000;
-	rotVelError = rotVelError - w/10;
-	srand(time(NULL));
-	
-	LOG(LEVEL_WARN) << "velError = " << velError << " rotError = " << rotVelError;
-	r.setRotVel(w + rotVelError);
-	
+	r.setVel(v);
+	r.setRotVel(w);
 	p2dProxy.SetSpeed(r.getVel(), r.getRotVel());
 }
 
 void sense()
 {
+	randomGaussianNoise(0.5);
+	
 	r.updateLaserArray();
 	
 	r.printLaserValue(5);
+}
+
+double randomGaussianNoise(double sigma)
+{
+	double gaussianNumber, randomNumber;
+	
+	randomNumber = (rand() % 5000)/5000;
+	
+	gaussianNumber = pow((-2*log(randomNumber*sigma*pow((2*M_PI),0.5))),0.5)*sigma;
+	
+	return gaussianNumber;
 }
