@@ -88,7 +88,7 @@ void Robot::updateLaserArray()
 {
 	LOG(LEVEL_WARN) << "Laser info";
 	
-	int counter;
+	unsigned int counter;
 	
 	this->laserArray.clear();
 	
