@@ -47,4 +47,6 @@ void move(double v, double w)
 void sense()
 {
 	r.updateLaserArray();
+	
+	r.printLaserValue(5);
 }

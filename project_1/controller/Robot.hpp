@@ -30,6 +30,11 @@ class Robot
 		void setPose(double x, double y, double th);
 
 		void updateLaserArray();
+		
+		std::vector<double> getLaserArray();
+		double getLaserValue(unsigned int value);
+		void printLaserArray();
+		void printLaserValue(unsigned int value);
 	
 	private:
 		double x, y, th;
