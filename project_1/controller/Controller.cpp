@@ -21,15 +21,14 @@ int main()
 		// get current pose
 		r.getTrueState();
 		
-		r.printInfo();
+		r.printInfoComparation();
 		r.setVel(1);
 		r.setRotVel(2);
 		
 		// set desired v and w
-		p2dProxy.SetSpeed(0, 0);
-		
-		//p2dProxy.SetSpeed(r.getVel(), r.getRotVel());
 		move(r.getVel(), r.getRotVel());
+		
+		// update laser measurement array
 		sense();
 
 	}

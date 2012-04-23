@@ -24,6 +24,7 @@ class Robot
 		void setRotVel(double w);
 	
 		void printInfo();
+		void printInfoComparation();
 		
 		void getTrueState();
 
