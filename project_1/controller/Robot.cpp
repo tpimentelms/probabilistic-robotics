@@ -84,11 +84,12 @@ void Robot::setPose(double x, double y, double th)
 	this->setTh(th);
 }
 
-void Robot::laser()
+void Robot::setLaserArray(vector<double> measurementArray)
 {
 	LOG(LEVEL_WARN) << "Laser info";
 	LOG(LEVEL_INFO) << "LaserCount = " << laserProxy.GetCount();
 	LOG(LEVEL_INFO) << "Laser[0]   = " << laserProxy.GetRange(0);
+	this->laserArray = measurementArray;
 }
 
 

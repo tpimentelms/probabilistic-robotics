@@ -1,5 +1,6 @@
 #include <ProcessLogger.h>
 #include <libplayerc++/playerc++.h>
+#include <vector>
 
 extern PlayerCc::Position2dProxy p2dProxy;
 extern PlayerCc::LaserProxy laserProxy;
@@ -35,4 +36,5 @@ class Robot
 	private:
 		double x, y, th;
 		double v, w;
+		vector<double> laserArray(laserProxy.GetCount());
 };
