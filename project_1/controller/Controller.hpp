@@ -1,9 +1,11 @@
-#ifndef CONTROLLER_H
-#define CONTROLLER_H
+#ifndef CONTROLLER_HPP
+#define CONTROLLER_HPP
 
 #include <Robot.hpp>
 #include <ProcessLogger.h>
+
 #include <libplayerc++/playerc++.h>
+#include <vector>
 
 using namespace std;
 using namespace PlayerCc;
@@ -11,8 +13,10 @@ using namespace PlayerCc;
 int main();
 
 void move(double newV, double newW);
+
 void sense();
 
-double randomGaussianNoise(double sigma, double mean);
+void positionPredict();
+void kalmanFilter();
 
 #endif

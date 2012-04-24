@@ -1,13 +1,18 @@
-#ifndef ROBOT_H
-#define ROBOT_H
+#ifndef ROBOT_HPP
+#define ROBOT_HPP
 
+#include <Controller.hpp>
 #include <ProcessLogger.h>
+
 #include <libplayerc++/playerc++.h>
 #include <vector>
-#include <Controller.hpp>
 
-extern PlayerCc::Position2dProxy p2dProxy;
-extern PlayerCc::LaserProxy laserProxy;
+using namespace std;
+using namespace PlayerCc;
+
+extern PlayerClient playerRobot;
+extern Position2dProxy p2dProxy;
+extern LaserProxy laserProxy;
 
 class Robot
 {
@@ -22,15 +27,6 @@ class Robot
 		double getVel();
 		double getRotVel();
 		
-		double getXSigma();
-		double getYSigma();
-		double getThSigma();
-		double getVelSigma();
-		double getRotVelSigma();
-		double getMoveVelSigma();
-		double getMoveRotVelSigma();
-		double getLaserSigma();
-		
 		void setX(double x);
 		void setY(double y);
 		void setTh(double th);
@@ -38,35 +34,24 @@ class Robot
 		void setRotVel(double w);
 		void setPose(double x, double y, double th);
 		
-		void setXSigma(double xSigma);
-		void setYSigma(double ySigma);
-		void setThSigma(double thSigma);
-		void setVelSigma(double vSigma);
-		void setRotVelSigma(double wSigma);
-		
+        void updateState();
+        
 		void printInfo();
-		void printInfoComparation();
-		
-		void getTrueState();
-		
 		
 		//Measurements
-		std::vector<double> getLaserArray();
-		double getLaserValue(unsigned int value);
+		vector<double> getLaserReadings();
+		double getOneLaserReading(unsigned int value);
 		
-		void printLaserArray();
-		void printLaserValue(unsigned int value);
+		void printLaserReadings();
+		void printOneLaserReading(unsigned int value);
 		
-		void updateLaserArray();
-		void updatePose(double v, double w, double dv, double dw);
+		void updateLaserReadings();
 
 	
 	private:
 		double x, y, th;
 		double v, w;
-		double velSigma, rotVelSigma;
-		double moveVelSigma, moveRotVelSigma, laserSigma;
-		std::vector<double> laserArray;
+		vector<double> laserReadings;
 };
 
 #endif

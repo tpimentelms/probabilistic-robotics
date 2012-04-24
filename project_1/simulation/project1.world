@@ -1,4 +1,6 @@
-# Authors: Guilherme Anselmo, Matheus V. Portela, Tiago Pimentel
+# Authors: Guilherme Anselmo
+#          Matheus V. Portela
+#          Tiago Pimentel
 # Date: 17 Apr 2012
 
 include "map.inc"
@@ -28,12 +30,18 @@ pioneer2dx
   name "r0"
   pose [ -7 -7 0 45 ] 
 
-  sicklaser(   
-      ctrl "lasernoise"  # uncomment this line to run a laser noise generator
+  sicklaser(
+      # laser noise generator
+      ctrl "lasernoise"
   )
 
-  # report error-free position in world coordinates
+  # report position in world coordinates with gaussian error
   localization "odom"
+  # start at (0, 0, 0)
   localization_origin [ 0 0 0 0 ]
+  # gaussian error for odometry
+  # parameters:
+  # odom_error [x xstd y ystd theta thetastd]
+  odom_error [0.01 0.05 0.01 0.02 0.01 0.02] 
 )
 
