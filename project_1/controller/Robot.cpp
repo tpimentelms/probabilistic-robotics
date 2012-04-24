@@ -86,8 +86,8 @@ void Robot::updateState()
 	this->setX(p2dProxy.GetXPos());
 	this->setY(p2dProxy.GetYPos());
 	this->setTh(p2dProxy.GetYaw());
-	this->setVel(p2dProxy.GetXSpeed());
-	this->setRotVel(p2dProxy.GetYawSpeed());
+	//this->setVel(p2dProxy.GetXSpeed());//  No errors present in this measurements, so don't use it
+	//this->setRotVel(p2dProxy.GetYawSpeed());
 }
 
 void Robot::printInfo()
@@ -116,17 +116,27 @@ void Robot::updateLaserReadings()
 	double laserMeasurement;
 	
 	this->laserReadings.clear();
+	this->validLaserReadings.clear();
 	
 	for (counter = 0; counter < laserProxy.GetCount(); counter++)
 	{
 		laserMeasurement = laserProxy.GetRange(counter);
 		this->laserReadings.push_back(laserMeasurement);
+		if (laserMeasurement < 2.8)
+		{
+			this->validLaserReadings.push_back(counter);
+		}
 	}
 }
 
 vector<double> Robot::getLaserReadings()
 {
 	return this->laserReadings;
+}
+
+vector<double> Robot::getValidLaserReadings()
+{
+	return this->validLaserReadings;
 }
 
 double Robot::getOneLaserReading(unsigned int value)
@@ -160,6 +170,26 @@ void Robot::printLaserReadings()
 	for (counter = 0; counter < this->laserReadings.size(); counter++)
 	{	
 		LOG(LEVEL_INFO) << "Laser[" << counter << "] = " << this->laserReadings.at(counter);
+	}
+}
+
+void Robot::printValidLaserReadings()
+{
+	if (this->validLaserReadings.size() == 0)
+	{
+		LOG(LEVEL_ERROR) << "Valid Laser info";
+		LOG(LEVEL_ERROR) << "No valid laser info.";
+		
+		return;
+	}
+	
+	LOG(LEVEL_WARN) << "Laser info";
+	LOG(LEVEL_INFO) << "Valid laser readings array size = " << this->validLaserReadings.size();
+	
+	unsigned int counter;
+	for (counter = 0; counter < this->validLaserReadings.size(); counter++)
+	{	
+		LOG(LEVEL_INFO) << "Valid Laser[" << counter << "] = " << this->validLaserReadings.at(counter);
 	}
 }
 

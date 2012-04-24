@@ -26,6 +26,11 @@ mat createMu();
 
 void kalmanFilter();
 
+bool interpretMeasurements();
+int findLine();
+bool findCorner();
+bool findLandmark();
+
 double randomGaussianNoise(double sigma, double mean);
 
 #endif

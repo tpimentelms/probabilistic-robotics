@@ -27,7 +27,6 @@ int main()
 		move(r.getVel(), r.getRotVel());
 		sense();
 		kalmanFilter();
-        
 	}
 	
 	return 0;
@@ -50,6 +49,7 @@ void sense()
 {	
 	r.updateLaserReadings();
 	//r.printLaserReadings();
+	//r.printValidLaserReadings();
     
     /*
      * TODO: Write interpretation function, which will do some analysis
@@ -58,6 +58,101 @@ void sense()
      * 
      * interpretMeasurements()
      */
+     
+     interpretMeasurements();
+}
+
+bool interpretMeasurements()
+{
+	bool foundSomething;
+	
+	if (findLine() || findLandmark())
+	{
+		foundSomething = 1;
+		if (findLine() == 2)
+		{
+			findCorner();
+		}
+		return 1;
+	}
+	
+	
+	return 0;
+}
+
+int findLine()
+{
+	unsigned int i, j, k;
+	int number, counter;
+	double deltaX, deltaY;
+	vector<double> laserMeasurements = r.getLaserReadings();
+	vector<double> validLaserMeasurements = r.getValidLaserReadings();
+	vector<double> cosOfLine;
+	mat houghMatrix = zeros<mat>(validLaserMeasurements.size(), 1000);
+	
+	
+	LOG(LEVEL_WARN) << "Finding Line Info";
+	/*
+	for (i=0;i<1000;i++)
+	{
+		for(j=0; j<laserMeasurements.size(); j++)
+		{
+			deltaX = laserMeasurements.at(j)*cos(r.getTh()+dtor(j));
+			deltaY = laserMeasurements.at(j)*sin(r.getTh()+dtor(j));
+			houghMatrix(j, i) = deltaX*cos(i*M_PI/1000) + deltaY*sin(i*M_PI/1000);
+		}
+	}
+	*/
+	
+	for (i=0;i<1000;i++)
+	{
+		for(j=0; j<validLaserMeasurements.size(); j++)
+		{
+			deltaX = laserMeasurements.at(validLaserMeasurements.at(j))*cos(r.getTh()+dtor((j+180)%360));
+			deltaY = laserMeasurements.at(validLaserMeasurements.at(j))*sin(r.getTh()+dtor((j+180)%360));
+			houghMatrix(j, i) = deltaX*cos(i*M_PI/1000) + deltaY*sin(i*M_PI/1000);
+		}
+	}
+	
+	
+	for(j=0; j < validLaserMeasurements.size(); j++)
+	{
+		number = 0;
+		for (i=0;i<1000;i++)
+		{
+			counter = 0;
+			for (k=0; k<validLaserMeasurements.size(); k++)
+			{
+				if (0.05 > abs(houghMatrix(j, i) - houghMatrix(k, i)))
+				{
+					counter = counter + 1;
+					//cosOfLine.push_back(i); 	//create something that locks the thetas so we can them compare and,
+												// if it's really different, consider two diferent lines.
+				}
+			}
+			if(counter > 50)
+				number = number + 1;
+		}
+		if (number>0)
+		{
+			LOG(LEVEL_INFO) << "Number[" << validLaserMeasurements.at(j) << "] = " << number;
+			LOG(LEVEL_INFO) << "Theta[" << validLaserMeasurements.at(j) << "] = " << r.getTh();
+			for ()
+		}
+	}
+	
+	
+	return 0;
+}
+
+bool findCorner()
+{
+	return 0;
+}
+
+bool findLandmark()
+{
+	return 0;
 }
 
 mat predictMean(mat A, mat B)
