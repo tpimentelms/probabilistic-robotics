@@ -43,8 +43,8 @@ void move(double v, double w)
 	r.setVel(v);
 	r.setRotVel(w);
 	
-	vel = randomGaussianNoise(r.getVelSigma(), v);
-	rotVel = randomGaussianNoise(r.getRotVelSigma(), w);
+	vel = randomGaussianNoise(r.getMoveVelSigma(), v);
+	rotVel = randomGaussianNoise(r.getMoveRotVelSigma(), w);
 	
 	p2dProxy.SetSpeed(vel, rotVel);
 }

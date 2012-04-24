@@ -22,8 +22,13 @@ class Robot
 		double getVel();
 		double getRotVel();
 		
+		double getXSigma();
+		double getYSigma();
+		double getThSigma();
 		double getVelSigma();
 		double getRotVelSigma();
+		double getMoveVelSigma();
+		double getMoveRotVelSigma();
 		double getLaserSigma();
 		
 		void setX(double x);
@@ -33,8 +38,11 @@ class Robot
 		void setRotVel(double w);
 		void setPose(double x, double y, double th);
 		
-		void setVelSigma();
-		void setRotVelSigma();
+		void setXSigma(double xSigma);
+		void setYSigma(double ySigma);
+		void setThSigma(double thSigma);
+		void setVelSigma(double vSigma);
+		void setRotVelSigma(double wSigma);
 		
 		void printInfo();
 		void printInfoComparation();
@@ -56,7 +64,8 @@ class Robot
 	private:
 		double x, y, th;
 		double v, w;
-		double velSigma, rotVelSigma, laserSigma;
+		double velSigma, rotVelSigma;
+		double moveVelSigma, moveRotVelSigma, laserSigma;
 		std::vector<double> laserArray;
 };
 

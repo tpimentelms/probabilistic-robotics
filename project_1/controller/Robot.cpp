@@ -2,8 +2,8 @@
 
 Robot::Robot()
 {
-	this->velSigma = 0.1;
-	this->rotVelSigma = 0.1;
+	this->moveVelSigma = 0.1;
+	this->moveRotVelSigma = 0.1;
 	this->laserSigma = 0.05;
 }
 
@@ -36,17 +36,17 @@ double Robot::getRotVel()
 	return this->w;
 }
 
-void Robot::getXSigma()
+double Robot::getXSigma()
 {
 	return this->xSigma;
 }
 
-void Robot::getYSigma()
+double Robot::getYSigma()
 {
 	return this->ySigma;
 }
 
-void Robot::getThSigma()
+double Robot::getThSigma()
 {
 	return this->thSigma;
 }
@@ -59,6 +59,16 @@ double Robot::getVelSigma()
 double Robot::getRotVelSigma()
 {
 	return this->rotVelSigma;
+}
+
+double Robot::getMoveVelSigma()
+{
+	return this->moveVelSigma;
+}
+
+double Robot::getMoveRotVelSigma()
+{
+	return this->moveRotVelSigma;
 }
 
 double Robot::getLaserSigma()
@@ -96,7 +106,6 @@ void Robot::setThSigma(double thSigma)
 	this->thSigma = thSigma;
 }
 
-
 void Robot::setVel(double v)
 {
 	this->v = v;
@@ -105,6 +114,16 @@ void Robot::setVel(double v)
 void Robot::setRotVel(double w)
 {
 	this->w = w;
+}
+
+void Robot::setVelSigma(double vSigma)
+{
+	this->velSigma = vSigma;
+}
+
+void Robot::setRotVelSigma(double wSigma)
+{
+	this->rotVelSigma = wSigma;
 }
 
 void Robot::printInfo()
@@ -222,3 +241,4 @@ void Robot::updatePose(double v, double w, double dv, double dw)
 	
 	this->dth = this->dth + dw
 }
+
