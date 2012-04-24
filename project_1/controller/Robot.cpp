@@ -2,6 +2,9 @@
 
 Robot::Robot()
 {
+	this->velSigma = 0.1;
+	this->rotVelSigma = 0.1;
+	this->laserSigma = 0.5;
 }
 
 Robot::~Robot()
@@ -31,6 +34,21 @@ double Robot::getVel()
 double Robot::getRotVel()
 {
 	return this->w;
+}
+
+double Robot::getVelSigma()
+{
+	return this->velSigma;
+}
+
+double Robot::getRotVelSigma()
+{
+	return this->rotVelSigma;
+}
+
+double Robot::getLaserSigma()
+{
+	return this->laserSigma;
 }
 
 void Robot::setX(double x)
@@ -74,8 +92,8 @@ void Robot::printInfoComparation()
 	LOG(LEVEL_INFO) << "X = " << this->getX() << "\t True X = " << p2dProxy.GetXPos() << "\t Delta X = " << this->getX()-p2dProxy.GetXPos();
 	LOG(LEVEL_INFO) << "Y = " << this->getY() << "\t True Y = " << p2dProxy.GetYPos() << "\t Delta Y = " << this->getY()-p2dProxy.GetYPos();
 	LOG(LEVEL_INFO) << "Th = " << this->getTh() << "\t True Th = " << p2dProxy.GetYaw() << "\t Delta Th = " << this->getTh()-p2dProxy.GetYaw();
-	LOG(LEVEL_INFO) << "Vel = " << this->getVel() << "\t\t True Vel = " << p2dProxy.GetXSpeed() << "\t\t Delta Vel = " << this->getVel()-p2dProxy.GetXSpeed();
-	LOG(LEVEL_INFO) << "RotVel = " << this->getRotVel() << "\t True RotVel = " << p2dProxy.GetYawSpeed() << "\t Delta RotVel = " << this->getRotVel()-p2dProxy.GetYawSpeed();
+	LOG(LEVEL_INFO) << "Vel = " << this->getVel() << "\t True Vel = " << p2dProxy.GetXSpeed() << "\t Delta Vel = " << this->getVel()-p2dProxy.GetXSpeed();
+	LOG(LEVEL_INFO) << "RotVel = " << this->getRotVel() << " True RotVel = " << p2dProxy.GetYawSpeed() << "\t Delta RotVel = " << this->getRotVel()-p2dProxy.GetYawSpeed();
 }
 
 void Robot::getTrueState()
@@ -97,12 +115,14 @@ void Robot::setPose(double x, double y, double th)
 void Robot::updateLaserArray()
 {
 	unsigned int counter;
+	double laserMeasurement;
 	
 	this->laserArray.clear();
 	
 	for (counter = 0; counter<laserProxy.GetCount(); counter++)
 	{
-		this->laserArray.push_back (laserProxy.GetRange(counter));
+		laserMeasurement = randomGaussianNoise(this->getLaserSigma(), laserProxy.GetRange(counter));
+		this->laserArray.push_back (laserMeasurement);
 	}
 }
 
