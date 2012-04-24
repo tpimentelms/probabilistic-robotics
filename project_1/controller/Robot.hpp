@@ -6,9 +6,11 @@
 
 #include <libplayerc++/playerc++.h>
 #include <vector>
+#include <armadillo>
 
 using namespace std;
 using namespace PlayerCc;
+using namespace arma;
 
 extern PlayerClient playerRobot;
 extern Position2dProxy p2dProxy;

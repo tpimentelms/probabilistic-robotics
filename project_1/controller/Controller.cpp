@@ -61,6 +61,14 @@ void sense()
 
 void positionPredict()
 {
+	int counterCol, counterRow;
+	
+	
+	mat A = eye<mat>(7,7);
+	A(3, 3) = 0;
+	A(4, 4) = 0;
+	LOG(LEVEL_WARN) << "Matrix A = " << endl << A;
+		
     /*
      * TODO: Write functions to build matrices and vectors to be used
      * by the Kalman Filter, such as mean, covariance, control and mea-
