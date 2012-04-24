@@ -18,7 +18,12 @@ void move(double newV, double newW);
 
 void sense();
 
-void positionPredict();
+mat predictMean();
+mat createAt();
+mat createBt();
+mat createUt();
+mat createMu();
+
 void kalmanFilter();
 
 double randomGaussianNoise(double sigma, double mean);

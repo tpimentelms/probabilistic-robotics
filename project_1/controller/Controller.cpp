@@ -26,7 +26,8 @@ int main()
         
 		move(r.getVel(), r.getRotVel());
 		sense();
-        positionPredict();
+		kalmanFilter();
+        
 	}
 	
 	return 0;
@@ -59,16 +60,17 @@ void sense()
      */
 }
 
-void positionPredict()
+mat predictMean(mat A, mat B)
 {
-	int counterCol, counterRow;
+	mat ut = createUt();
+	mat mu = createMu();
+	mat muBar = A*mu + B*ut;
 	
 	
-	mat A = eye<mat>(7,7);
-	A(3, 3) = 0;
-	A(4, 4) = 0;
-	LOG(LEVEL_WARN) << "Matrix A = " << endl << A;
-		
+	LOG(LEVEL_WARN) << "A = " << endl << A;	
+	//LOG(LEVEL_WARN) << "mu = " << endl << mu;	
+	LOG(LEVEL_WARN) << "B = " << endl << B;	
+	//LOG(LEVEL_WARN) << "ut = " << endl << ut;	
     /*
      * TODO: Write functions to build matrices and vectors to be used
      * by the Kalman Filter, such as mean, covariance, control and mea-
@@ -78,13 +80,82 @@ void positionPredict()
      *  cov = createCov();
      *  ut = createUt();
      *  zt = createZt();
+     *  Bt = updateBt();
      */
     
-    kalmanFilter();
+    return muBar;
 }
 
+mat createAt()
+{
+	mat A = eye<mat>(7,7);
+	
+	A(3, 3) = 0;
+	A(4, 4) = 0;
+	
+	return A;
+}
+
+mat createBt()
+{
+	mat B = zeros<mat>(7,2);
+	
+	//Velocity parameters
+	B(0, 0) = cos(r.getTh());
+	B(1, 0) = sin(r.getTh());
+	B(2, 0) = 0;
+	B(3, 0) = 1;
+	B(4, 0) = 0;
+	B(5, 0) = 0;
+	B(6, 0) = 0;
+	
+	//Rotation parameters
+	B(0, 1) = 0;
+	B(1, 1) = 0;
+	B(2, 1) = 1;
+	B(3, 1) = 0;
+	B(4, 1) = 1;
+	B(5, 1) = 0;
+	B(6, 1) = 0;
+	
+	return B;
+
+}
+
+/*mat createUt()
+{
+	mat ut = zeros<mat>(2,1);
+	
+	ut(0,0) = r.getVel();
+	ut(1,0) = r.getRotVel();
+	
+	return ut;
+}
+
+mat createMu()
+{
+	mat mu = zeros<mat>(7,1);
+	
+	mu(0,0) = r.getX();
+	mu(1,0) = r.getY();
+	mu(2,0) = r.getTh();
+	mu(3,0) = r.getVel();
+	mu(4,0) = r.getRotVel();
+	mu(5,0) = 0;
+	mu(6,0) = 0;
+	
+	return mu;
+}
+*/
 void kalmanFilter()
 {
+	mat muBar = zeros<mat>(7,1);
+	mat A = createAt();
+	mat B = createBt();
+	muBar = predictMean(A, B);
+	//predictionMean(A, B)-> returns muBar
+	//predictionCov(A)-> returns covBar
+	//void postionUpdate(muBar, covBar)
     /*
      * TODO: Implement Kalman Filter algorithm.
      * TODO: Write functions to create each Kalman Filter matrix, such
