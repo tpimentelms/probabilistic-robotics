@@ -10,4 +10,4 @@ int main();
 void move(double newV, double newW);
 void sense();
 
-double randomGaussianNoise(double sigma);
+double randomGaussianNoise(double sigma, double mean);

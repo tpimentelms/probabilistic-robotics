@@ -45,20 +45,21 @@ void move(double v, double w)
 
 void sense()
 {
-	randomGaussianNoise(0.5);
+	double a = randomGaussianNoise(0.5, 0);
 	
 	r.updateLaserArray();
 	
 	r.printLaserValue(5);
 }
 
-double randomGaussianNoise(double sigma)
+double randomGaussianNoise(double sigma, double mean)
 {
-	double gaussianNumber, randomNumber;
+	double gaussianNumber, randomNumber1, randomNumber2;
 	
-	randomNumber = (rand() % 5000)/5000;
+	randomNumber1 = double((rand() % 5000))/5000;
+	randomNumber2 = double((rand() % 5000))/5000;
 	
-	gaussianNumber = pow((-2*log(randomNumber*sigma*pow((2*M_PI),0.5))),0.5)*sigma;
+    gaussianNumber = pow(-2*log(randomNumber1),0.5)*cos(2*M_PI*randomNumber2)*sigma+mean;
 	
 	return gaussianNumber;
 }
