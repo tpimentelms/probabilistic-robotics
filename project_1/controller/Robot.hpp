@@ -37,6 +37,7 @@ class Robot
         void updateState();
         
 		void printInfo();
+		void printInfoComparison();
 		
 		//Measurements
 		vector<double> getLaserReadings();

@@ -14,7 +14,7 @@ int main()
     {
 		r.updateState();
 		
-		r.printInfo();
+		r.printInfoComparison();
         
         /*
          * TODO: remove this setVel and setRotVel!
