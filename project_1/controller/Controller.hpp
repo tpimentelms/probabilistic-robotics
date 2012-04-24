@@ -19,4 +19,6 @@ void sense();
 void positionPredict();
 void kalmanFilter();
 
+double randomGaussianNoise(double sigma, double mean);
+
 #endif

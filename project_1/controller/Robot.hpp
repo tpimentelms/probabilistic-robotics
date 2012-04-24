@@ -27,6 +27,9 @@ class Robot
 		double getVel();
 		double getRotVel();
 		
+		double getMoveVelSigma();
+		double getMoveRotVelSigma();
+		
 		void setX(double x);
 		void setY(double y);
 		void setTh(double th);
@@ -52,7 +55,9 @@ class Robot
 	private:
 		double x, y, th;
 		double v, w;
+		double moveVelSigma, moveRotVelSigma; // Needs to put this in a matrix, covariance of Ut
 		vector<double> laserReadings;
+		//matrix Xbart, Ut, Xt, At, Bt
 };
 
 #endif

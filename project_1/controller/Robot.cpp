@@ -2,6 +2,8 @@
 
 Robot::Robot()
 {
+	this->moveVelSigma = 0.1;
+	this->moveRotVelSigma = 0.1;
 }
 
 Robot::~Robot()
@@ -31,6 +33,16 @@ double Robot::getVel()
 double Robot::getRotVel()
 {
 	return this->w;
+}
+
+double Robot::getMoveVelSigma()
+{
+	return this->moveVelSigma;
+}
+
+double Robot::getMoveRotVelSigma()
+{
+	return this->moveRotVelSigma;
 }
 
 void Robot::setX(double x)
@@ -70,6 +82,7 @@ void Robot::updateState()
     // read current state from player client
     playerRobot.Read();
     
+    // cant use gps, this is wrong
 	this->setX(p2dProxy.GetXPos());
 	this->setY(p2dProxy.GetYPos());
 	this->setTh(p2dProxy.GetYaw());
@@ -92,7 +105,7 @@ void Robot::printInfoComparison()
 	LOG(LEVEL_WARN) << "Robot comparison info";
 	LOG(LEVEL_INFO) << "X = " << this->getX() << "\t True X = " << p2dProxy.GetXPos() << "\t Delta X = " << this->getX()-p2dProxy.GetXPos();
 	LOG(LEVEL_INFO) << "Y = " << this->getY() << "\t True Y = " << p2dProxy.GetYPos() << "\t Delta Y = " << this->getY()-p2dProxy.GetYPos();
-	LOG(LEVEL_INFO) << "Th = " << this->getTh() << "\t True Th = " << p2dProxy.GetYaw() << "\t Delta Th = " << this->getTh()-p2dProxy.GetYaw();
+	LOG(LEVEL_INFO) << "Th = " << rtod(this->getTh()) << "\t True Th = " << rtod(p2dProxy.GetYaw()) << "\t Delta Th = " << rtod(this->getTh()-p2dProxy.GetYaw());
 	LOG(LEVEL_INFO) << "Vel = " << this->getVel() << "\t True Vel = " << p2dProxy.GetXSpeed() << "\t Delta Vel = " << this->getVel()-p2dProxy.GetXSpeed();
 	LOG(LEVEL_INFO) << "RotVel = " << this->getRotVel() << " True RotVel = " << p2dProxy.GetYawSpeed() << "\t Delta RotVel = " << this->getRotVel()-p2dProxy.GetYawSpeed();
 }
