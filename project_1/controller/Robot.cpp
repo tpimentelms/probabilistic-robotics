@@ -4,7 +4,7 @@ Robot::Robot()
 {
 	this->velSigma = 0.1;
 	this->rotVelSigma = 0.1;
-	this->laserSigma = 0.5;
+	this->laserSigma = 0.05;
 }
 
 Robot::~Robot()

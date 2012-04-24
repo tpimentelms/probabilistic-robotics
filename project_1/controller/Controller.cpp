@@ -53,7 +53,7 @@ void sense()
 {	
 	r.updateLaserArray();
 	
-	r.printLaserValue(5);
+	//r.printLaserValue(5);
 }
 
 double randomGaussianNoise(double sigma, double mean)
