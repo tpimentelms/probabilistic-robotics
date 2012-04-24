@@ -36,6 +36,21 @@ double Robot::getRotVel()
 	return this->w;
 }
 
+void Robot::getXSigma()
+{
+	return this->xSigma;
+}
+
+void Robot::getYSigma()
+{
+	return this->ySigma;
+}
+
+void Robot::getThSigma()
+{
+	return this->thSigma;
+}
+
 double Robot::getVelSigma()
 {
 	return this->velSigma;
@@ -65,6 +80,22 @@ void Robot::setTh(double th)
 {
 	this->th = th;
 }
+
+void Robot::setXsigma(double xSigma)
+{
+	this->xSigma = xSigma;
+}
+
+void Robot::setYSigma(double ySigma)
+{
+	this->ySigma = ySigma;
+}
+
+void Robot::setThSigma(double thSigma)
+{
+	this->thSigma = thSigma;
+}
+
 
 void Robot::setVel(double v)
 {
@@ -177,4 +208,17 @@ void Robot::printLaserValue(unsigned int value)
 	LOG(LEVEL_WARN) << "Laser info";
 	
 	LOG(LEVEL_INFO) << "Laser[" << value << "] = " << this->laserArray.at(value);
+}
+
+void Robot::updatePose(double v, double w, double dv, double dw)
+{
+	this->x = this->x + cos(this->th)*v
+	this->dx = this->dx + cos(this->th)*dv
+	
+	this->y = this->y + sen(this->th)*v
+	this->dx = this->dx + sen(this->th)*dv
+	
+	this->th = this->th + w
+	
+	this->dth = this->dth + dw
 }

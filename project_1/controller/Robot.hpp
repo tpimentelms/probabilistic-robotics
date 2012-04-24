@@ -50,6 +50,8 @@ class Robot
 		void printLaserValue(unsigned int value);
 		
 		void updateLaserArray();
+		void updatePose(double v, double w, double dv, double dw);
+
 	
 	private:
 		double x, y, th;
