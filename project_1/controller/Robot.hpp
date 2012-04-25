@@ -32,6 +32,8 @@ class Robot
 		double getMoveVelSigma();
 		double getMoveRotVelSigma();
 		
+		mat getSigma();
+
 		void setX(double x);
 		void setY(double y);
 		void setTh(double th);
@@ -40,6 +42,7 @@ class Robot
 		void setPose(double x, double y, double th);
 		
         void updateState();
+        void updateSigma(mat newSigma);
         
 		void printInfo();
 		void printInfoComparison();
@@ -62,6 +65,7 @@ class Robot
 		double moveVelSigma, moveRotVelSigma; // Needs to put this in a matrix, covariance of Ut
 		vector<double> laserReadings;
 		vector<double> validLaserReadings;
+		mat Sigma;
 		//matrix Xbart, Ut, Xt, At, Bt
 };
 

@@ -162,10 +162,7 @@ mat predictMean(mat A, mat B)
 	mat muBar = A*mu + B*ut;
 	
 	
-	LOG(LEVEL_WARN) << "A = " << endl << A;	
-	//LOG(LEVEL_WARN) << "mu = " << endl << mu;	
-	LOG(LEVEL_WARN) << "B = " << endl << B;	
-	//LOG(LEVEL_WARN) << "ut = " << endl << ut;	
+	
     /*
      * TODO: Write functions to build matrices and vectors to be used
      * by the Kalman Filter, such as mean, covariance, control and mea-
@@ -180,6 +177,16 @@ mat predictMean(mat A, mat B)
     
     return muBar;
 }
+
+mat predictiCov(mat A)
+{
+	mat R = createRt();
+	mat sigma = r.getSigma();
+	mat sigmaBar = A * sigma * A.t() + R;
+	
+	return sigmaBar;
+}
+
 
 mat createAt()
 {
@@ -217,7 +224,7 @@ mat createBt()
 
 }
 
-/*mat createUt()
+mat createUt()
 {
 	mat ut = zeros<mat>(2,1);
 	
@@ -240,16 +247,33 @@ mat createMu()
 	mu(6,0) = 0;
 	
 	return mu;
+} 
+
+mat createRt()
+{
+	mat R = eye<mat>(7,7);
+	double theta = r.getTh();
+	R(0,0) = r.getMoveVelSigma() * abs(cos(theta));
+	R(1,1) = r.getMoveVelSigma() * abs(sin(theta));
+	R(2,2) = r.getMoveRotVelSigma();
+	R(3,3) = r.getMoveVelSigma();
+	R(4,4) = r.getMoveRotVelSigma();
+	R(5,5) = 0;
+	R(6,6) = 0;
+	
+	return R;
 }
-*/
+
+
 void kalmanFilter()
 {
-	mat muBar = zeros<mat>(7,1);
 	mat A = createAt();
 	mat B = createBt();
-	muBar = predictMean(A, B);
-	//predictionMean(A, B)-> returns muBar
-	//predictionCov(A)-> returns covBar
+	mat muBar = predictMean(A, B);
+	mat sigmaBar = predictiCov(A);
+	r.updateSigma(sigmaBar);
+	LOG(LEVEL_WARN) << "Sigma = " << endl << sigmaBar;
+	//
 	//void postionUpdate(muBar, covBar)
     /*
      * TODO: Implement Kalman Filter algorithm.

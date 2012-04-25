@@ -19,10 +19,12 @@ void move(double newV, double newW);
 void sense();
 
 mat predictMean();
+mat predictionCov(mat A);
 mat createAt();
 mat createBt();
 mat createUt();
 mat createMu();
+mat createRt();
 
 void kalmanFilter();
 

@@ -4,6 +4,8 @@ Robot::Robot()
 {
 	this->moveVelSigma = 0.1;
 	this->moveRotVelSigma = 0.1;
+	this->Sigma = 1000*eye<mat>(7,7);
+	
 }
 
 Robot::~Robot()
@@ -43,6 +45,11 @@ double Robot::getMoveVelSigma()
 double Robot::getMoveRotVelSigma()
 {
 	return this->moveRotVelSigma;
+}
+
+mat Robot::getSigma()
+{
+	return this->Sigma;
 }
 
 void Robot::setX(double x)
@@ -88,6 +95,11 @@ void Robot::updateState()
 	this->setTh(p2dProxy.GetYaw());
 	//this->setVel(p2dProxy.GetXSpeed());//  No errors present in this measurements, so don't use it
 	//this->setRotVel(p2dProxy.GetYawSpeed());
+}
+
+void Robot::updateSigma(mat newSigma)
+{
+	this->Sigma = newSigma;
 }
 
 void Robot::printInfo()
