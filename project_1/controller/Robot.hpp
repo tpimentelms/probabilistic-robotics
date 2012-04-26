@@ -28,6 +28,7 @@ class Robot
 		double getTh();
 		double getVel();
 		double getRotVel();
+		int    getStrategy();
 		
 		double getMoveVelSigma();
 		double getMoveRotVelSigma();
@@ -40,6 +41,7 @@ class Robot
 		void setVel(double v);
 		void setRotVel(double w);
 		void setPose(double x, double y, double th);
+		void setStrategy(int strategy);
 		
         void updateState();
         void updateSigma(mat newSigma);
@@ -66,6 +68,7 @@ class Robot
 		vector<double> laserReadings;
 		vector<double> validLaserReadings;
 		mat Sigma;
+		int strategy;
 		//matrix Xbart, Ut, Xt, At, Bt
 };
 

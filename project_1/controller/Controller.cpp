@@ -20,8 +20,7 @@ int main()
          * TODO: remove this setVel and setRotVel!
          * experimental circle, just to see if everything is OK.
          */
-		r.setVel(1);
-		r.setRotVel(2);
+		strategy();
 		
         
 		move(r.getVel(), r.getRotVel());
@@ -33,16 +32,20 @@ int main()
 }
 
 void move(double v, double w)
-{
-	double vel, rotVel;
-	
+{	
 	r.setVel(v);
 	r.setRotVel(w);
 	
-	vel = randomGaussianNoise(r.getMoveVelSigma(), v);
-	rotVel = randomGaussianNoise(r.getMoveRotVelSigma(), w);
+	if(v != 0)
+	{
+		v = randomGaussianNoise(r.getMoveVelSigma(), v);
+	}
+	if(w != 0)
+	{
+		w = randomGaussianNoise(r.getMoveRotVelSigma(), w);
+	}
 	
-	p2dProxy.SetSpeed(vel, rotVel);
+	p2dProxy.SetSpeed(v, w);
 }
 
 void sense()
@@ -123,21 +126,22 @@ int findLine()
 			counter = 0;
 			for (k=0; k<validLaserMeasurements.size(); k++)
 			{
-				if (0.05 > abs(houghMatrix(j, i) - houghMatrix(k, i)))
+				if (0.01 > abs(houghMatrix(j, i) - houghMatrix(k, i)))
 				{
 					counter = counter + 1;
 					//cosOfLine.push_back(i); 	//create something that locks the thetas so we can them compare and,
 												// if it's really different, consider two diferent lines.
 				}
 			}
-			if(counter > 50)
+			if(counter > 20)
 				number = number + 1;
 		}
 		if (number>0)
 		{
 			LOG(LEVEL_INFO) << "Number[" << validLaserMeasurements.at(j) << "] = " << number;
 			LOG(LEVEL_INFO) << "Theta[" << validLaserMeasurements.at(j) << "] = " << r.getTh();
-			for ()
+			//for ()
+			return 1;
 		}
 	}
 	
@@ -271,24 +275,45 @@ void kalmanFilter()
 	mat B = createBt();
 	mat muBar = predictMean(A, B);
 	mat sigmaBar = predictiCov(A);
-	r.updateSigma(sigmaBar);
-	LOG(LEVEL_WARN) << "Sigma = " << endl << sigmaBar;
+	r.updateSigma(sigmaBar);	
 	//
 	//void postionUpdate(muBar, covBar)
     /*
      * TODO: Implement Kalman Filter algorithm.
-     * TODO: Write functions to create each Kalman Filter matrix, such
+     * TODO: Write functions to reate each Kalman Filter matrix, such
      * as At, Bt and Ct, using armadillo.
      */
 }
 
 void strategy()
 {
+	int strategy_state = r.getStrategy();
+	
+	switch(strategy_state)
+	{
+		case 1://Estratégia de busca do canto
+			
+			bool detectObject = interpretMeasurements();
+			
+			if(detectObject == 1)
+			{
+				r.setVel(0);
+				r.setRotVel(0);
+			}
+			else
+			{
+				r.setVel(0.5);
+				r.setRotVel(0);
+			}
+		break;
+	}
+}
+				
     /*
      * TODO: Write this function, which will choose the best action to
      * take after analysing all avaiable data.
      */
-}
+
 
 double randomGaussianNoise(double sigma, double mean)
 {

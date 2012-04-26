@@ -35,4 +35,6 @@ bool findLandmark();
 
 double randomGaussianNoise(double sigma, double mean);
 
+void strategy();
+
 #endif

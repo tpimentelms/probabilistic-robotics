@@ -5,7 +5,7 @@ Robot::Robot()
 	this->moveVelSigma = 0.1;
 	this->moveRotVelSigma = 0.1;
 	this->Sigma = 1000*eye<mat>(7,7);
-	
+	this->strategy = 1;
 }
 
 Robot::~Robot()
@@ -52,6 +52,11 @@ mat Robot::getSigma()
 	return this->Sigma;
 }
 
+int Robot::getStrategy()
+{
+	return this->strategy;
+}
+
 void Robot::setX(double x)
 {
 	this->x = x;
@@ -82,6 +87,11 @@ void Robot::setPose(double x, double y, double th)
 	this->setX(x);
 	this->setY(y);
 	this->setTh(th);
+}
+
+void Robot::setStrategy(int strategy)
+{
+	this->strategy = strategy;
 }
 
 void Robot::updateState()
