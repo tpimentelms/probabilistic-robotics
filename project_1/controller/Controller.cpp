@@ -93,26 +93,20 @@ int findLine()
 	unsigned int i, j, k;
 	int number, counter;
 	int oneTime;
+	int found = 0;
 	double deltaX, deltaY;
+	double lineTheta, lineDistance;
+	int sensorUsed;
 	vector<double> laserMeasurements = r.getLaserReadings();
 	vector<int> validLaserMeasurements = r.getValidLaserReadings();
-	vector<double> cosOfLine;
+	vector<double> cosOfLine, cosMeans;
+	vector<double> getPositions;
 	mat houghMatrix = zeros<mat>(validLaserMeasurements.size(), 1000);
 	
+	cosMeans.clear();
+	getPositions.clear();
 	
 	LOG(LEVEL_WARN) << "Finding Line Info";
-	
-	/*
-	for (i=0;i<1000;i++)
-	{
-		for(j=0; j<laserMeasurements.size(); j++)
-		{
-			deltaX = laserMeasurements.at(j)*cos(r.getTh()+dtor(j));
-			deltaY = laserMeasurements.at(j)*sin(r.getTh()+dtor(j));
-			houghMatrix(j, i) = deltaX*cos(i*M_PI/1000) + deltaY*sin(i*M_PI/1000);
-		}
-	}
-	*/
 	
 	for (i=0;i<1000;i++)
 	{
@@ -123,39 +117,6 @@ int findLine()
 			houghMatrix(j, i) = deltaX*cos(i*M_PI/1000) + deltaY*sin(i*M_PI/1000);
 		}
 	}
-	
-	/*
-	for(j=0; j < validLaserMeasurements.size(); j++)
-	{
-		number = 0;
-		cosOfLine.clear();
-		for (i=0;i<1000;i++)
-		{
-			counter = 0;
-			for (k=0; k<validLaserMeasurements.size(); k++)
-			{
-				if (0.01 > abs(houghMatrix(j, i) - houghMatrix(k, i)))
-				{
-					counter = counter + 1;
-				}
-			}
-			if(counter > 20)
-			{
-				number = number + 1;
-				cosOfLine.push_back(i); 		//create something that locks the thetas so we can them compare and,
-			}									// if it's really different, consider two diferent lines.
-		}
-		if (number>0)
-		{
-			LOG(LEVEL_INFO) << "Number[" << validLaserMeasurements.at(j) << "] = " << number;
-			LOG(LEVEL_INFO) << "Theta[" << validLaserMeasurements.at(j) << "] = " << r.getTh();
-			for (k=0; k<cosOfLine.size(); k++)
-				LOG(LEVEL_INFO) << "Measurement Theta[" << validLaserMeasurements.at(j) << "] = " << cosOfLine.at(k);
-			return 1;
-		}
-	}
-	*/
-	
 	
 	for(j=0; j < validLaserMeasurements.size(); j++)
 	{
@@ -179,61 +140,38 @@ int findLine()
 				//LOG(LEVEL_INFO) << "Counter = " << houghMatrix(1, 1) << "\tj = " << houghMatrix(1, 501);
 				number = number + 1;
 				cosOfLine.push_back(i);
-			}									
-		}
-		if (number>0)
-		{
-			LOG(LEVEL_INFO) << "Number[" << validLaserMeasurements.at(j) << "] = " << number;
-			LOG(LEVEL_INFO) << "Theta[" << validLaserMeasurements.at(j) << "] = " << r.getTh();
-			LOG(LEVEL_INFO) << "Measurement Mean Theta[" << validLaserMeasurements.at(j) << "] = " << getMedian(cosOfLine);
-			for (k=0; k<cosOfLine.size(); k++)
-				LOG(LEVEL_INFO) << "Measurement Theta[" << validLaserMeasurements.at(j) << "] = " << cosOfLine.at(k);
-		}
-	}
-	
-	
-	/*
-	for(j=0; j < validLaserMeasurements.size(); j++)
-	{
-		number = 0;
-		cosOfLine.clear();
-		for (i=0;i<1000;i++)
-		{
-			counter = 0;
-			oneTime = 1;
-			for (k=((j-20 + validLaserMeasurements.size()) % validLaserMeasurements.size()); ((k<((j+20) % validLaserMeasurements.size())) || k > ((j+100) %validLaserMeasurements.size())) && oneTime != 0; k = ((k + 1) %  validLaserMeasurements.size()))
-			{
-				if (1 > abs(houghMatrix(j, i) - houghMatrix(k, i)))
-				{
-					counter = counter + 1;
-				}
-				if (k==((j-20 + validLaserMeasurements.size()) % validLaserMeasurements.size()) && oneTime == 2)
-				{
-					oneTime = 0;
-				}
-				if (k==((j-20 + validLaserMeasurements.size()) % validLaserMeasurements.size()) && oneTime == 1)
-				{
-					oneTime = 2;
-				}
-			LOG(LEVEL_INFO) << "Number[" << k << "         " << validLaserMeasurements.size() << "       " << i << "\n" << ((j-20 + validLaserMeasurements.size()) % validLaserMeasurements.size()) << "                  " << oneTime;
 			}
-			if(counter > 20)
-			{
-				number = number + 1;
-				cosOfLine.push_back(i); 		//create something that locks the thetas so we can them compare and,
-			}									// if it's really different, consider two diferent lines.
 		}
 		if (number>0)
 		{
-			LOG(LEVEL_INFO) << "Number[" << validLaserMeasurements.at(j) << "] = " << number;
-			LOG(LEVEL_INFO) << "Theta[" << validLaserMeasurements.at(j) << "] = " << r.getTh();
-			for (k=0; k<cosOfLine.size(); k++)
-				LOG(LEVEL_INFO) << "Measurement Theta[" << validLaserMeasurements.at(j) << "] = " << cosOfLine.at(k);
+//			LOG(LEVEL_INFO) << "Number[" << validLaserMeasurements.at(j) << "] = " << number;
+//			LOG(LEVEL_INFO) << "Theta[" << validLaserMeasurements.at(j) << "] = " << r.getTh();
+//			LOG(LEVEL_INFO) << "Measurement Mean Theta[" << validLaserMeasurements.at(j) << "] = " << getMeanRoundWorld(cosOfLine, 1000);
+			cosMeans.push_back(getMeanRoundWorld(cosOfLine, 1000));
+			getPositions.push_back(validLaserMeasurements.at(j));
+//			for (k=0; k<cosOfLine.size(); k++)
+//				LOG(LEVEL_INFO) << "Measurement Theta[" << validLaserMeasurements.at(j) << "] = " << cosOfLine.at(k);
+			found = 1;
 		}
 	}
-	*/
 	
-	return 0;
+	if (cosMeans.size() == 0)
+		return 0;
+	
+	lineTheta = getMeanRoundWorld(cosMeans, 1000);
+	sensorUsed = int(getMeanRoundWorld(getPositions, laserMeasurements.size()));
+	
+	deltaX = laserMeasurements.at(sensorUsed)*cos(r.getTh()+dtor((sensorUsed+180)%360));
+	deltaY = laserMeasurements.at(sensorUsed)*sin(r.getTh()+dtor((sensorUsed+180)%360));
+	lineDistance = deltaX*cos(lineTheta*M_PI/1000) + deltaY*sin(lineTheta*M_PI/1000);
+	
+	lineTheta = lineTheta*M_PI/1000;
+	
+	LOG(LEVEL_INFO) << "Distance = " << lineDistance;
+	LOG(LEVEL_INFO) << "Theta = " << lineTheta;
+	LOG(LEVEL_INFO) << "Sensor Used = " << sensorUsed;
+	
+	return 1;
 }
 
 bool findCorner()
@@ -428,6 +366,46 @@ double randomGaussianNoise(double sigma, double mean)
 	return gaussianNumber;
 }
 
+double getMeanRoundWorld(vector<double> array, int worldSize)
+{
+	unsigned int counter;
+	double mean1 = 0, mean2 = 0;
+	double diff1 = 0, diff2 = 0;
+		
+	for (counter = 0; counter < array.size(); counter++)
+	{
+		if (array.at(counter) > worldSize/2)
+			mean2 = mean2 + array.at(counter) - worldSize;
+		else
+			mean2 = mean2 + array.at(counter);
+			
+		mean1 = mean1 + array.at(counter);
+	}
+	
+	mean1 = mean1 / array.size();
+	mean2 = mean2 / array.size();
+	
+	for (counter = 0; counter < array.size(); counter++)
+	{
+		if (array.at(counter) > worldSize/2)
+			diff2 = diff2 + abs (mean2 - array.at(counter) + worldSize);
+		else
+			diff2 = diff2 + abs (mean2 - array.at(counter));
+		
+		diff1 = diff1 + abs (mean1 - array.at(counter));
+	}
+	
+	if(diff1 <= diff2)
+		return mean1;
+	else
+	{
+		if (mean2<0)
+			return mean2+worldSize;
+		else
+			return mean2;
+	}
+}
+
 double getMedian(vector<double> array)
 {
 	unsigned int counter;
@@ -437,6 +415,5 @@ double getMedian(vector<double> array)
 		mean = mean + array.at(counter);
 	
 	mean = mean / array.size();
-	
 	return mean;
 }
