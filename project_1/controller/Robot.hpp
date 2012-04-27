@@ -51,7 +51,7 @@ class Robot
 		
 		//Measurements
 		vector<double> getLaserReadings();
-		vector<double> getValidLaserReadings();
+		vector<int> getValidLaserReadings();
 		double getOneLaserReading(unsigned int value);
 		
 		void printLaserReadings();
@@ -66,7 +66,7 @@ class Robot
 		double v, w;
 		double moveVelSigma, moveRotVelSigma; // Needs to put this in a matrix, covariance of Ut
 		vector<double> laserReadings;
-		vector<double> validLaserReadings;
+		vector<int> validLaserReadings;
 		mat Sigma;
 		int strategy;
 		//matrix Xbart, Ut, Xt, At, Bt

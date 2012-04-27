@@ -144,7 +144,7 @@ void Robot::updateLaserReadings()
 	{
 		laserMeasurement = laserProxy.GetRange(counter);
 		this->laserReadings.push_back(laserMeasurement);
-		if (laserMeasurement < 2.8)
+		if (laserMeasurement < 2.7)
 		{
 			this->validLaserReadings.push_back(counter);
 		}
@@ -156,7 +156,7 @@ vector<double> Robot::getLaserReadings()
 	return this->laserReadings;
 }
 
-vector<double> Robot::getValidLaserReadings()
+vector<int> Robot::getValidLaserReadings()
 {
 	return this->validLaserReadings;
 }

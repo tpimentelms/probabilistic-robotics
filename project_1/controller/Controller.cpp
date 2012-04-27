@@ -1,4 +1,5 @@
 #include <Controller.hpp>
+// To do: Ajustar a média dos ângulos.
 
 PlayerClient playerRobot("localhost");
 Position2dProxy p2dProxy(&playerRobot, 0);
@@ -87,14 +88,16 @@ int findLine()
 {
 	unsigned int i, j, k;
 	int number, counter;
+	int oneTime;
 	double deltaX, deltaY;
 	vector<double> laserMeasurements = r.getLaserReadings();
-	vector<double> validLaserMeasurements = r.getValidLaserReadings();
+	vector<int> validLaserMeasurements = r.getValidLaserReadings();
 	vector<double> cosOfLine;
 	mat houghMatrix = zeros<mat>(validLaserMeasurements.size(), 1000);
 	
 	
 	LOG(LEVEL_WARN) << "Finding Line Info";
+	
 	/*
 	for (i=0;i<1000;i++)
 	{
@@ -111,16 +114,17 @@ int findLine()
 	{
 		for(j=0; j<validLaserMeasurements.size(); j++)
 		{
-			deltaX = laserMeasurements.at(validLaserMeasurements.at(j))*cos(r.getTh()+dtor((j+180)%360));
-			deltaY = laserMeasurements.at(validLaserMeasurements.at(j))*sin(r.getTh()+dtor((j+180)%360));
+			deltaX = laserMeasurements.at(validLaserMeasurements.at(j))*cos(r.getTh()+dtor((validLaserMeasurements.at(j)+180)%360));
+			deltaY = laserMeasurements.at(validLaserMeasurements.at(j))*sin(r.getTh()+dtor((validLaserMeasurements.at(j)+180)%360));
 			houghMatrix(j, i) = deltaX*cos(i*M_PI/1000) + deltaY*sin(i*M_PI/1000);
 		}
 	}
 	
-	
+	/*
 	for(j=0; j < validLaserMeasurements.size(); j++)
 	{
 		number = 0;
+		cosOfLine.clear();
 		for (i=0;i<1000;i++)
 		{
 			counter = 0;
@@ -129,22 +133,101 @@ int findLine()
 				if (0.01 > abs(houghMatrix(j, i) - houghMatrix(k, i)))
 				{
 					counter = counter + 1;
-					//cosOfLine.push_back(i); 	//create something that locks the thetas so we can them compare and,
-												// if it's really different, consider two diferent lines.
 				}
 			}
 			if(counter > 20)
+			{
 				number = number + 1;
+				cosOfLine.push_back(i); 		//create something that locks the thetas so we can them compare and,
+			}									// if it's really different, consider two diferent lines.
 		}
 		if (number>0)
 		{
 			LOG(LEVEL_INFO) << "Number[" << validLaserMeasurements.at(j) << "] = " << number;
 			LOG(LEVEL_INFO) << "Theta[" << validLaserMeasurements.at(j) << "] = " << r.getTh();
-			//for ()
+			for (k=0; k<cosOfLine.size(); k++)
+				LOG(LEVEL_INFO) << "Measurement Theta[" << validLaserMeasurements.at(j) << "] = " << cosOfLine.at(k);
 			return 1;
 		}
 	}
+	*/
 	
+	
+	for(j=0; j < validLaserMeasurements.size(); j++)
+	{
+		number = 0;
+		cosOfLine.clear();
+		for (i=0;i<1000;i++)
+		{
+			counter = 0;
+			oneTime = 1;
+			for (k=0; k<=100 && k <= validLaserMeasurements.size(); k++)
+			{
+				if (0.05 > abs(houghMatrix(j, i) - houghMatrix((j+k-50)%validLaserMeasurements.size(), i)) && k != 50)
+				{
+					counter = counter + 1;
+					//LOG(LEVEL_INFO) << "Counter = " << counter << "\tk = " << k;
+				}
+			}
+			if(counter > 60)
+			{
+				//LOG(LEVEL_INFO) << "Counter = " << counter << "\tj = " << j;
+				//LOG(LEVEL_INFO) << "Counter = " << houghMatrix(1, 1) << "\tj = " << houghMatrix(1, 501);
+				number = number + 1;
+				cosOfLine.push_back(i);
+			}									
+		}
+		if (number>0)
+		{
+			LOG(LEVEL_INFO) << "Number[" << validLaserMeasurements.at(j) << "] = " << number;
+			LOG(LEVEL_INFO) << "Theta[" << validLaserMeasurements.at(j) << "] = " << r.getTh();
+			LOG(LEVEL_INFO) << "Measurement Mean Theta[" << validLaserMeasurements.at(j) << "] = " << getMedian(cosOfLine);
+			for (k=0; k<cosOfLine.size(); k++)
+				LOG(LEVEL_INFO) << "Measurement Theta[" << validLaserMeasurements.at(j) << "] = " << cosOfLine.at(k);
+		}
+	}
+	
+	
+	/*
+	for(j=0; j < validLaserMeasurements.size(); j++)
+	{
+		number = 0;
+		cosOfLine.clear();
+		for (i=0;i<1000;i++)
+		{
+			counter = 0;
+			oneTime = 1;
+			for (k=((j-20 + validLaserMeasurements.size()) % validLaserMeasurements.size()); ((k<((j+20) % validLaserMeasurements.size())) || k > ((j+100) %validLaserMeasurements.size())) && oneTime != 0; k = ((k + 1) %  validLaserMeasurements.size()))
+			{
+				if (1 > abs(houghMatrix(j, i) - houghMatrix(k, i)))
+				{
+					counter = counter + 1;
+				}
+				if (k==((j-20 + validLaserMeasurements.size()) % validLaserMeasurements.size()) && oneTime == 2)
+				{
+					oneTime = 0;
+				}
+				if (k==((j-20 + validLaserMeasurements.size()) % validLaserMeasurements.size()) && oneTime == 1)
+				{
+					oneTime = 2;
+				}
+			LOG(LEVEL_INFO) << "Number[" << k << "         " << validLaserMeasurements.size() << "       " << i << "\n" << ((j-20 + validLaserMeasurements.size()) % validLaserMeasurements.size()) << "                  " << oneTime;
+			}
+			if(counter > 20)
+			{
+				number = number + 1;
+				cosOfLine.push_back(i); 		//create something that locks the thetas so we can them compare and,
+			}									// if it's really different, consider two diferent lines.
+		}
+		if (number>0)
+		{
+			LOG(LEVEL_INFO) << "Number[" << validLaserMeasurements.at(j) << "] = " << number;
+			LOG(LEVEL_INFO) << "Theta[" << validLaserMeasurements.at(j) << "] = " << r.getTh();
+			for (k=0; k<cosOfLine.size(); k++)
+				LOG(LEVEL_INFO) << "Measurement Theta[" << validLaserMeasurements.at(j) << "] = " << cosOfLine.at(k);
+		}
+	}
+	*/
 	
 	return 0;
 }
@@ -280,7 +363,7 @@ void kalmanFilter()
 	//void postionUpdate(muBar, covBar)
     /*
      * TODO: Implement Kalman Filter algorithm.
-     * TODO: Write functions to reate each Kalman Filter matrix, such
+     * TODO: Write functions to create each Kalman Filter matrix, such
      * as At, Bt and Ct, using armadillo.
      */
 }
@@ -339,4 +422,17 @@ double randomGaussianNoise(double sigma, double mean)
 	//LOG(LEVEL_INFO) << "Gaussian Number = " << gaussianNumber;
 	
 	return gaussianNumber;
+}
+
+double getMedian(vector<double> array)
+{
+	unsigned int counter;
+	double mean = 0;
+	
+	for (counter = 0; counter < array.size(); counter++)
+		mean = mean + array.at(counter);
+	
+	mean = mean / array.size();
+	
+	return mean;
 }

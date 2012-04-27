@@ -34,6 +34,7 @@ bool findCorner();
 bool findLandmark();
 
 double randomGaussianNoise(double sigma, double mean);
+double getMedian(vector<double> array);
 
 void strategy();
 
