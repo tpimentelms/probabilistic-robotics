@@ -1,7 +1,7 @@
 CXX = g++
 CPPFLAGS = -Wall -O2 -g
 
-SOURCES =  Robot.cpp Controller.cpp
+SOURCES =  Robot.cpp Controller.cpp Map.cpp
 OBJECTS = $(patsubst %.cpp, %.o, $(SOURCES))
 EXECUTABLE = Controller
 

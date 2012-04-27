@@ -7,6 +7,7 @@
 #include <libplayerc++/playerc++.h>
 #include <vector>
 #include <armadillo>
+#include <Map.hpp>
 
 using namespace std;
 using namespace PlayerCc;

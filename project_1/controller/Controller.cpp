@@ -5,11 +5,15 @@ PlayerClient playerRobot("localhost");
 Position2dProxy p2dProxy(&playerRobot, 0);
 LaserProxy laserProxy(&playerRobot, 0);
 
+Map worldMap, robotMap;
+
 Robot r;
 
 int main()
 {
     laserProxy.RequestGeom();
+	
+	worldMap.createKnownMap();
 	
     while(true)
     {

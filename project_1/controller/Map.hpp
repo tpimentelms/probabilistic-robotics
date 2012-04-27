@@ -1,8 +1,17 @@
 #ifndef MAP_HPP
 #define MAP_HPP
 
+#include <Controller.hpp>
 #include <ProcessLogger.h>
+
+#include <libplayerc++/playerc++.h>
 #include <vector>
+#include <armadillo>
+#include <Robot.hpp>
+
+using namespace std;
+using namespace PlayerCc;
+using namespace arma;
 
 struct point_t
 {
@@ -16,19 +25,22 @@ struct wall_t
 };
 typedef struct wall_t wall;
 
+
 class Map
 {
     public:
         Map();
         ~Map();
         
-        addWall(wall newWall);
-        addCorner(point newCorner);
-        addLandmark(point newLandmark);
+        void addWall(point begin, point end);
+        void addCorner(point newCorner);
+        void addLandmark(point newLandmark);
         
-        getWalls();
-        getCorners();
-        getLandmarks();
+        void createKnownMap();
+        
+        vector<wall> getWalls();
+        vector<point> getCorners();
+        vector<point> getLandmarks();
         
     private:
         vector<wall> walls;
