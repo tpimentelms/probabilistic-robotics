@@ -12,6 +12,13 @@ using namespace std;
 using namespace PlayerCc;
 using namespace arma;
 
+struct walls_found
+{
+	double distance;
+	double angle;
+};
+typedef struct walls_found wallsFound; 
+
 int main();
 
 void move(double newV, double newW);
@@ -29,7 +36,7 @@ mat createRt();
 void kalmanFilter();
 
 bool interpretMeasurements();
-int findLine();
+vector<wallsFound> findLine();
 bool findCorner();
 bool findLandmark();
 

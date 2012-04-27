@@ -73,11 +73,14 @@ void sense()
 bool interpretMeasurements()
 {
 	bool foundSomething;
+	vector<wallsFound> lines;
 	
-	if (findLine() || findLandmark())
+	lines = findLine();
+	
+	if (lines.at(0).distance || findLandmark())
 	{
 		foundSomething = 1;
-		if (findLine() == 2)
+		if (lines.size() == 2)
 		{
 			findCorner();
 		}
@@ -88,7 +91,7 @@ bool interpretMeasurements()
 	return 0;
 }
 
-int findLine()
+vector<wallsFound> findLine()
 {
 	unsigned int i, j, k;
 	int number, counter;
@@ -97,11 +100,13 @@ int findLine()
 	double deltaX, deltaY;
 	double lineTheta, lineDistance;
 	unsigned int sensorUsed;
-	bool positiveAngle;
+	int positiveAngle;
 	vector<double> laserMeasurements = r.getLaserReadings();
 	vector<int> validLaserMeasurements = r.getValidLaserReadings();
 	vector<double> cosOfLine, cosMeans;
 	vector<double> getPositions;
+	wallsFound singleLine;
+	vector<wallsFound> lines;
 	mat houghMatrix = zeros<mat>(validLaserMeasurements.size(), 1000);
 	
 	cosMeans.clear();
@@ -157,7 +162,11 @@ int findLine()
 	}
 	
 	if (cosMeans.size() == 0)
-		return 0;
+	{
+		singleLine.distance = 0;
+		lines.push_back(singleLine);
+		return lines;
+	}
 	
 	lineTheta = getMeanRoundWorld(cosMeans, 1000);
 	sensorUsed = int(getMeanRoundWorld(getPositions, laserMeasurements.size()));
@@ -168,16 +177,27 @@ int findLine()
 	
 	lineTheta = lineTheta*M_PI/1000;
 	
-	if (sensorUsed < laserMeasurements.size()/2)
+	if ((r.getTh()+dtor((sensorUsed+180)%360)) < M_PI)
+	{
 		positiveAngle = 1;	//0-Pi => 1, 0-Pi => -1
+	}
 	else
+	{
 		positiveAngle = -1;
+	}
 	
 	LOG(LEVEL_INFO) << "Distance = " << lineDistance;
-	LOG(LEVEL_INFO) << "Theta = " << positiveAngle*lineTheta;
+	LOG(LEVEL_INFO) << "Theta = " << lineTheta;
 	LOG(LEVEL_INFO) << "Sensor Used = " << sensorUsed;
+	LOG(LEVEL_INFO) << "Where? = " << (r.getTh()+dtor((sensorUsed+180)%360));
+	LOG(LEVEL_INFO) << "Theta Positive? = " << positiveAngle;
 	
-	return 1;
+	singleLine.distance = lineDistance;
+	singleLine.distance = positiveAngle*lineTheta;
+	
+	lines.push_back(singleLine);
+	
+	return lines;
 }
 
 bool findCorner()
