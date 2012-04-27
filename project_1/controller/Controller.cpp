@@ -96,7 +96,8 @@ int findLine()
 	int found = 0;
 	double deltaX, deltaY;
 	double lineTheta, lineDistance;
-	int sensorUsed;
+	unsigned int sensorUsed;
+	bool positiveAngle;
 	vector<double> laserMeasurements = r.getLaserReadings();
 	vector<int> validLaserMeasurements = r.getValidLaserReadings();
 	vector<double> cosOfLine, cosMeans;
@@ -167,8 +168,13 @@ int findLine()
 	
 	lineTheta = lineTheta*M_PI/1000;
 	
+	if (sensorUsed < laserMeasurements.size()/2)
+		positiveAngle = 1;	//0-Pi => 1, 0-Pi => -1
+	else
+		positiveAngle = -1;
+	
 	LOG(LEVEL_INFO) << "Distance = " << lineDistance;
-	LOG(LEVEL_INFO) << "Theta = " << lineTheta;
+	LOG(LEVEL_INFO) << "Theta = " << positiveAngle*lineTheta;
 	LOG(LEVEL_INFO) << "Sensor Used = " << sensorUsed;
 	
 	return 1;
