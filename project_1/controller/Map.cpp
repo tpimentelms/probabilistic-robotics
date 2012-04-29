@@ -23,8 +23,8 @@ void Map::createKnownMap()
 	wallPointBegin.x = -5;
 	wallPointBegin.y = 2.6;
 	
-	wallPointBegin.x = -5;
-	wallPointBegin.y = 12;
+	wallPointEnd.x = -5;
+	wallPointEnd.y = 12;
 	
 	this->addCorner(wallPointBegin);
 	

@@ -1,5 +1,4 @@
 #include <Controller.hpp>
-// To do: Ajustar a média dos ângulos.
 
 PlayerClient playerRobot("localhost");
 Position2dProxy p2dProxy(&playerRobot, 0);
@@ -77,8 +76,12 @@ bool interpretMeasurements()
 	
 	lines = findLine();
 	
+	//checks if something was found
 	if (lines.at(0).distance || findLandmark())
 	{
+		//LOG(LEVEL_INFO) << "Distance = " << lines.at(0).distance;
+		//LOG(LEVEL_INFO) << "Theta = " << lines.at(0).angle;
+		
 		foundSomething = 1;
 		if (lines.size() == 2)
 		{
@@ -93,14 +96,12 @@ bool interpretMeasurements()
 
 vector<wallsFound> findLine()
 {
+	//variable declarations
 	unsigned int i, j, k;
 	int number, counter;
-	int oneTime;
-	int found = 0;
 	double deltaX, deltaY;
 	double lineTheta, lineDistance;
 	unsigned int sensorUsed;
-	int positiveAngle;
 	vector<double> laserMeasurements = r.getLaserReadings();
 	vector<int> validLaserMeasurements = r.getValidLaserReadings();
 	vector<double> cosOfLine, cosMeans;
@@ -109,11 +110,11 @@ vector<wallsFound> findLine()
 	vector<wallsFound> lines;
 	mat houghMatrix = zeros<mat>(validLaserMeasurements.size(), 1000);
 	
+	//empties vectors used
 	cosMeans.clear();
 	getPositions.clear();
 	
-	LOG(LEVEL_WARN) << "Finding Line Info";
-	
+	//transforms measurements distances to hough space
 	for (i=0;i<1000;i++)
 	{
 		for(j=0; j<validLaserMeasurements.size(); j++)
@@ -124,6 +125,7 @@ vector<wallsFound> findLine()
 		}
 	}
 	
+	//checks which of them is part of a line
 	for(j=0; j < validLaserMeasurements.size(); j++)
 	{
 		number = 0;
@@ -131,36 +133,27 @@ vector<wallsFound> findLine()
 		for (i=0;i<1000;i++)
 		{
 			counter = 0;
-			oneTime = 1;
 			for (k=0; k<=100 && k <= validLaserMeasurements.size(); k++)
 			{
 				if (0.05 > abs(houghMatrix(j, i) - houghMatrix((j+k-50)%validLaserMeasurements.size(), i)) && k != 50)
 				{
 					counter = counter + 1;
-					//LOG(LEVEL_INFO) << "Counter = " << counter << "\tk = " << k;
 				}
 			}
 			if(counter > 60)
 			{
-				//LOG(LEVEL_INFO) << "Counter = " << counter << "\tj = " << j;
-				//LOG(LEVEL_INFO) << "Counter = " << houghMatrix(1, 1) << "\tj = " << houghMatrix(1, 501);
 				number = number + 1;
 				cosOfLine.push_back(i);
 			}
 		}
 		if (number>0)
 		{
-//			LOG(LEVEL_INFO) << "Number[" << validLaserMeasurements.at(j) << "] = " << number;
-//			LOG(LEVEL_INFO) << "Theta[" << validLaserMeasurements.at(j) << "] = " << r.getTh();
-//			LOG(LEVEL_INFO) << "Measurement Mean Theta[" << validLaserMeasurements.at(j) << "] = " << getMeanRoundWorld(cosOfLine, 1000);
 			cosMeans.push_back(getMeanRoundWorld(cosOfLine, 1000));
 			getPositions.push_back(validLaserMeasurements.at(j));
-//			for (k=0; k<cosOfLine.size(); k++)
-//				LOG(LEVEL_INFO) << "Measurement Theta[" << validLaserMeasurements.at(j) << "] = " << cosOfLine.at(k);
-			found = 1;
 		}
 	}
 	
+	//checks if theres any line
 	if (cosMeans.size() == 0)
 	{
 		singleLine.distance = 0;
@@ -168,33 +161,29 @@ vector<wallsFound> findLine()
 		return lines;
 	}
 	
-	lineTheta = getMeanRoundWorld(cosMeans, 1000);
-	sensorUsed = int(getMeanRoundWorld(getPositions, laserMeasurements.size()));
+	LOG(LEVEL_WARN) << "Line Found";
 	
+	//gets mean of all possible theta, from 0-pi, and which would be the most trustable sensor
+	lineTheta = getMeanRoundWorld(cosMeans, 1000);
+	sensorUsed = (unsigned int)(getMeanRoundWorld(getPositions, laserMeasurements.size()));
+	
+	//gets distance to wall
 	deltaX = laserMeasurements.at(sensorUsed)*cos(r.getTh()+dtor((sensorUsed+180)%360));
 	deltaY = laserMeasurements.at(sensorUsed)*sin(r.getTh()+dtor((sensorUsed+180)%360));
 	lineDistance = deltaX*cos(lineTheta*M_PI/1000) + deltaY*sin(lineTheta*M_PI/1000);
 	
+	//gets theta from 0-2*pi
 	lineTheta = lineTheta*M_PI/1000;
+	lineTheta = getBetterAngle(sensorUsed, lineTheta);
 	
-	if ((r.getTh()+dtor((sensorUsed+180)%360)) < M_PI)
-	{
-		positiveAngle = 1;	//0-Pi => 1, 0-Pi => -1
-	}
-	else
-	{
-		positiveAngle = -1;
-	}
+	//LOG(LEVEL_INFO) << "Distance = " << lineDistance;
+	//LOG(LEVEL_INFO) << "Theta = " << lineTheta;
+	//LOG(LEVEL_INFO) << "Sensor Used = " << sensorUsed;
+	//LOG(LEVEL_INFO) << "Where? = " << (r.getTh()+dtor((sensorUsed+180)%360));
 	
-	LOG(LEVEL_INFO) << "Distance = " << lineDistance;
-	LOG(LEVEL_INFO) << "Theta = " << lineTheta;
-	LOG(LEVEL_INFO) << "Sensor Used = " << sensorUsed;
-	LOG(LEVEL_INFO) << "Where? = " << (r.getTh()+dtor((sensorUsed+180)%360));
-	LOG(LEVEL_INFO) << "Theta Positive? = " << positiveAngle;
-	
+	//passes arguments to vector returned
 	singleLine.distance = lineDistance;
-	singleLine.distance = positiveAngle*lineTheta;
-	
+	singleLine.angle = lineTheta;
 	lines.push_back(singleLine);
 	
 	return lines;
@@ -442,4 +431,23 @@ double getMedian(vector<double> array)
 	
 	mean = mean / array.size();
 	return mean;
+}
+
+double getBetterAngle (unsigned int sensorUsed, double lineTheta)
+{
+	double whereMeasurement = (r.getTh()+dtor((sensorUsed+180)%360));
+	double diff1, diff2;
+	
+	diff1 = abs(whereMeasurement - lineTheta);
+	diff2 = abs(whereMeasurement - lineTheta - M_PI);
+	
+	if (diff1 > M_PI)
+		diff1 = 2 * M_PI - diff1;
+	if (diff2 > M_PI)
+		diff2 = 2 * M_PI - diff2;
+	
+	if (diff1 < diff2)
+		return lineTheta;
+	else
+		return lineTheta + M_PI;
 }

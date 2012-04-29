@@ -43,6 +43,7 @@ bool findLandmark();
 double randomGaussianNoise(double sigma, double mean);
 double getMeanRoundWorld(vector<double> array, int worldSize);
 double getMedian(vector<double> array);
+double getBetterAngle (unsigned int sensorUsed, double lineTheta);
 
 void strategy();
 
