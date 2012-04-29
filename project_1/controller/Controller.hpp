@@ -46,5 +46,6 @@ double getMedian(vector<double> array);
 double getBetterAngle (unsigned int sensorUsed, double lineTheta);
 
 void strategy();
+void followWall(vector<wallsFound> lines);
 
 #endif

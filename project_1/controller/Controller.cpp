@@ -176,15 +176,12 @@ vector<wallsFound> findLine()
 	lineTheta = lineTheta*M_PI/1000;
 	lineTheta = getBetterAngle(sensorUsed, lineTheta);
 	
-	//LOG(LEVEL_INFO) << "Distance = " << lineDistance;
-	//LOG(LEVEL_INFO) << "Theta = " << lineTheta;
-	//LOG(LEVEL_INFO) << "Sensor Used = " << sensorUsed;
-	//LOG(LEVEL_INFO) << "Where? = " << (r.getTh()+dtor((sensorUsed+180)%360));
-	
 	//passes arguments to vector returned
 	singleLine.distance = lineDistance;
 	singleLine.angle = lineTheta;
 	lines.push_back(singleLine);
+	LOG(LEVEL_WARN) << "1size = ", (int) lines.size();
+
 	
 	return lines;
 }
@@ -337,6 +334,9 @@ void strategy()
 			
 			if(detectObject == 1)
 			{
+				vector<wallsFound> lines = findLine();
+				LOG(LEVEL_WARN) << "size = ", (int) lines.size();
+				followWall(lines);
 				r.setVel(0);
 				r.setRotVel(0);
 			}
@@ -347,6 +347,14 @@ void strategy()
 			}
 		break;
 	}
+}
+
+void followWall(vector<wallsFound> lines)
+{
+	LOG(LEVEL_WARN) << "size = ", (int) lines.size();
+	LOG(LEVEL_WARN) << "at(0) = ", (int) lines[0].distance;
+	return;
+	
 }
 				
     /*
