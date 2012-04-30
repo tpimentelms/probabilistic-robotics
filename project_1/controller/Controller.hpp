@@ -2,6 +2,7 @@
 #define CONTROLLER_HPP
 
 #include <Robot.hpp>
+#include <Map.hpp>
 #include <ProcessLogger.h>
 
 #include <libplayerc++/playerc++.h>
