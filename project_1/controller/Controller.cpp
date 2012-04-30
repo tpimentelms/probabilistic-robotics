@@ -71,7 +71,6 @@ void sense()
 
 bool interpretMeasurements()
 {
-	unsigned int j;
 	vector<wallsFound> lines;
 	point corner;
 	
@@ -80,19 +79,22 @@ bool interpretMeasurements()
 	//checks if something was found
 	if (lines.size() || findLandmark())
 	{
+		//landmark found
 		if (findLandmark())
 		{
 		}
+		//found only a line
 		if (lines.size() == 1)
 		{
 			LOG(LEVEL_WARN) << "Line found";
 			LOG(LEVEL_INFO) << "Distance = " << lines.at(0).distance;
 			LOG(LEVEL_INFO) << "Theta = " << lines.at(0).angle;
 		}
+		//found a corner
 		if (lines.size() == 2)
 		{
-			LOG(LEVEL_ERROR) << "Corner Found";
 			corner = findCorner(lines);
+			LOG(LEVEL_ERROR) << "Corner Found";
 			LOG(LEVEL_INFO) << "Corner X = " << corner.x;
 			LOG(LEVEL_INFO) << "Corner Y = " << corner.y;
 		}
