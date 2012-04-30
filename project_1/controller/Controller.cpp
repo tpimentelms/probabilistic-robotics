@@ -71,6 +71,7 @@ void sense()
 
 bool interpretMeasurements()
 {
+	unsigned int j;
 	bool foundSomething;
 	vector<wallsFound> lines;
 	
@@ -79,8 +80,11 @@ bool interpretMeasurements()
 	//checks if something was found
 	if (lines.at(0).distance || findLandmark())
 	{
-		//LOG(LEVEL_INFO) << "Distance = " << lines.at(0).distance;
-		//LOG(LEVEL_INFO) << "Theta = " << lines.at(0).angle;
+		for(j=0; j<lines.size(); j++)
+		{
+			LOG(LEVEL_INFO) << "Distance = " << lines.at(j).distance;
+			LOG(LEVEL_INFO) << "Theta = " << lines.at(j).angle;
+		}
 		
 		foundSomething = 1;
 		if (lines.size() == 2)
@@ -100,8 +104,6 @@ vector<wallsFound> findLine()
 	unsigned int i, j, k;
 	int number, counter;
 	double deltaX, deltaY;
-	double lineTheta, lineDistance;
-	unsigned int sensorUsed;
 	vector<double> laserMeasurements = r.getLaserReadings();
 	vector<int> validLaserMeasurements = r.getValidLaserReadings();
 	vector<double> cosOfLine, cosMeans;
@@ -161,27 +163,7 @@ vector<wallsFound> findLine()
 		return lines;
 	}
 	
-	LOG(LEVEL_WARN) << "Line Found";
-	
-	//gets mean of all possible theta, from 0-pi, and which would be the most trustable sensor
-	lineTheta = getMeanRoundWorld(cosMeans, 1000);
-	sensorUsed = (unsigned int)(getMeanRoundWorld(getPositions, laserMeasurements.size()));
-	
-	//gets distance to wall
-	deltaX = laserMeasurements.at(sensorUsed)*cos(r.getTh()+dtor((sensorUsed+180)%360));
-	deltaY = laserMeasurements.at(sensorUsed)*sin(r.getTh()+dtor((sensorUsed+180)%360));
-	lineDistance = deltaX*cos(lineTheta*M_PI/1000) + deltaY*sin(lineTheta*M_PI/1000);
-	
-	//gets theta from 0-2*pi
-	lineTheta = lineTheta*M_PI/1000;
-	lineTheta = getBetterAngle(sensorUsed, lineTheta);
-	
-	//passes arguments to vector returned
-	singleLine.distance = lineDistance;
-	singleLine.angle = lineTheta;
-	lines.push_back(singleLine);
-	LOG(LEVEL_WARN) << "1size = ", (int) lines.size();
-
+	lines = getLines(cosMeans, getPositions, laserMeasurements);
 	
 	return lines;
 }
@@ -458,4 +440,86 @@ double getBetterAngle (unsigned int sensorUsed, double lineTheta)
 		return lineTheta;
 	else
 		return lineTheta + M_PI;
+}
+
+vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions, vector<double> laserMeasurements)
+{
+	unsigned int k, j;
+	int i;
+	int numberOfLines;
+	bool differentThanAll;
+	double deltaX, deltaY;
+	double lineTheta, lineDistance;
+	unsigned int sensorUsed;
+	wallsFound singleLine;
+	vector<double> differentCosMeans;
+	vector<double> passingArguments;
+	vector<vector <double> > cosMeansGroups, getPositionsGroups;
+	vector<wallsFound> lines;
+	
+	numberOfLines = 1;
+	
+	differentCosMeans.push_back(cosMeans.at(0));
+	cosMeansGroups.push_back(differentCosMeans);
+	passingArguments.clear();
+	passingArguments.push_back(getPositions.at(0));
+	getPositionsGroups.push_back(passingArguments);
+	LOG(LEVEL_INFO) << "Cossens = " << cosMeans.at(0);
+	
+	for (k=0; k<cosMeans.size(); k++)
+	{
+		differentThanAll = 1;
+		for (j=0; j<differentCosMeans.size(); j++)
+		{
+			if (300 > abs(differentCosMeans.at(j) - cosMeans.at(k)) || 700 < abs(differentCosMeans.at(j) - cosMeans.at(k)))
+			{
+				differentThanAll = 0;
+				cosMeansGroups.at(j).push_back(cosMeans.at(k));
+				getPositionsGroups.at(j).push_back(getPositions.at(k));
+			}
+			if(differentThanAll == 1 && j == differentCosMeans.size() - 1)
+			{
+				differentCosMeans.push_back(cosMeans.at(k));
+				passingArguments.clear();
+				passingArguments.push_back(cosMeans.at(k));
+				numberOfLines++;
+				cosMeansGroups.push_back(passingArguments);
+				passingArguments.clear();
+				passingArguments.push_back(getPositions.at(k));
+				getPositionsGroups.push_back(passingArguments);
+				LOG(LEVEL_INFO) << "Cossens = " << cosMeans.at(k);
+			}
+		}
+	}
+	
+	LOG(LEVEL_WARN) << numberOfLines << " lines found";
+	
+	for (i=0; i<numberOfLines; i++)
+	{
+		
+		//gets mean of all possible theta, from 0-pi, and which would be the most trustable sensor
+		lineTheta = getMeanRoundWorld(cosMeansGroups.at(i), 1000);
+		sensorUsed = (unsigned int)(getMeanRoundWorld(getPositionsGroups.at(i), laserMeasurements.size()));
+		
+		//gets distance to wall
+		deltaX = laserMeasurements.at(sensorUsed)*cos(r.getTh()+dtor((sensorUsed+180)%360));
+		deltaY = laserMeasurements.at(sensorUsed)*sin(r.getTh()+dtor((sensorUsed+180)%360));
+		lineDistance = deltaX*cos(lineTheta*M_PI/1000) + deltaY*sin(lineTheta*M_PI/1000);
+		
+		//gets theta from 0-2*pi
+		lineTheta = lineTheta*M_PI/1000;
+		lineTheta = getBetterAngle(sensorUsed, lineTheta);
+		
+		//LOG(LEVEL_INFO) << "Distance = " << lineDistance;
+		//LOG(LEVEL_INFO) << "Theta = " << lineTheta;
+		//LOG(LEVEL_INFO) << "Sensor Used = " << sensorUsed;
+		//LOG(LEVEL_INFO) << "Where? = " << (r.getTh()+dtor((sensorUsed+180)%360));
+		
+		//passes arguments to vector returned
+		singleLine.distance = lineDistance;
+		singleLine.angle = lineTheta;
+		lines.push_back(singleLine);
+	}
+	
+	return lines;
 }
