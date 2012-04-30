@@ -80,7 +80,7 @@ bool interpretMeasurements()
 
 	
 	lines = findLine();
-	returnedLandmark = make_pair(0, landmark);//findLandmark();
+	returnedLandmark = findLandmark();//make_pair(0, landmark);
 	
 	//checks if something was found
 	if (lines.size() || returnedLandmark.first)
@@ -200,8 +200,8 @@ point findCorner(vector<wallsFound> lines)
 	d = lines.at(1).distance/sin(lines.at(1).angle);
 	
 	//find interssection of lines
-	corner.x = (d-b)/(a-c);
-	corner.y = a*corner.x + b;
+	corner.y = (d-b)/(a-c);
+	corner.x = -(a*corner.x + b);
 	
 	return corner;
 }
