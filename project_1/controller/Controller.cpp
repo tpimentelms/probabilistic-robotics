@@ -18,13 +18,13 @@ int main()
     {
 		r.updateState();
 		
-		r.printInfoComparison();
+		//r.printInfoComparison();
         
         /*
          * TODO: remove this setVel and setRotVel!
          * experimental circle, just to see if everything is OK.
          */
-		strategy();
+		//strategy();
 		
         
 		move(r.getVel(), r.getRotVel());
@@ -106,7 +106,7 @@ vector<wallsFound> findLine()
 	double deltaX, deltaY;
 	vector<double> laserMeasurements = r.getLaserReadings();
 	vector<int> validLaserMeasurements = r.getValidLaserReadings();
-	vector<double> cosOfLine, cosMeans;
+	vector<double> cosOfLine, cosMeans, distanceOfLine, distanceMeans;
 	vector<double> getPositions;
 	wallsFound singleLine;
 	vector<wallsFound> lines;
@@ -132,6 +132,7 @@ vector<wallsFound> findLine()
 	{
 		number = 0;
 		cosOfLine.clear();
+		distanceOfLine.clear();
 		for (i=0;i<1000;i++)
 		{
 			counter = 0;
@@ -146,11 +147,13 @@ vector<wallsFound> findLine()
 			{
 				number = number + 1;
 				cosOfLine.push_back(i);
+				distanceOfLine.push_back(abs(houghMatrix(j, i)));
 			}
 		}
 		if (number>0)
 		{
 			cosMeans.push_back(getMeanRoundWorld(cosOfLine, 1000));
+			distanceMeans.push_back(getMean(distanceOfLine));
 			getPositions.push_back(validLaserMeasurements.at(j));
 		}
 	}
@@ -163,7 +166,7 @@ vector<wallsFound> findLine()
 		return lines;
 	}
 	
-	lines = getLines(cosMeans, getPositions, laserMeasurements);
+	lines = getLines(cosMeans, getPositions, laserMeasurements, distanceMeans);
 	
 	return lines;
 }
@@ -333,8 +336,8 @@ void strategy()
 
 void followWall(vector<wallsFound> lines)
 {
-	LOG(LEVEL_WARN) << "size = ", (int) lines.size();
-	LOG(LEVEL_WARN) << "at(0) = ", (int) lines[0].distance;
+//	LOG(LEVEL_WARN) << "size = ", (int) lines.size();
+//	LOG(LEVEL_WARN) << "at(0) = ", (int) lines[0].distance;
 	return;
 	
 }
@@ -411,6 +414,20 @@ double getMeanRoundWorld(vector<double> array, int worldSize)
 	}
 }
 
+double getMean(vector<double> array)
+{
+	unsigned int counter;
+	double mean = 0;
+		
+	for (counter = 0; counter < array.size(); counter++)
+	{
+		mean = mean + array.at(counter);
+	}
+	
+	mean = mean / array.size();
+	return mean;
+}
+
 double getMedian(vector<double> array)
 {
 	unsigned int counter;
@@ -442,19 +459,19 @@ double getBetterAngle (unsigned int sensorUsed, double lineTheta)
 		return lineTheta + M_PI;
 }
 
-vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions, vector<double> laserMeasurements)
+vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions, vector<double> laserMeasurements, vector<double> distanceMeans)
 {
 	unsigned int k, j;
 	int i;
 	int numberOfLines;
 	bool differentThanAll;
-	double deltaX, deltaY;
+//	double deltaX, deltaY;
 	double lineTheta, lineDistance;
 	unsigned int sensorUsed;
 	wallsFound singleLine;
 	vector<double> differentCosMeans;
 	vector<double> passingArguments;
-	vector<vector <double> > cosMeansGroups, getPositionsGroups;
+	vector<vector <double> > cosMeansGroups, getPositionsGroups, distanceMeansGroups;
 	vector<wallsFound> lines;
 	
 	numberOfLines = 1;
@@ -464,7 +481,10 @@ vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions
 	passingArguments.clear();
 	passingArguments.push_back(getPositions.at(0));
 	getPositionsGroups.push_back(passingArguments);
-	LOG(LEVEL_INFO) << "Cossens = " << cosMeans.at(0);
+	passingArguments.clear();
+	passingArguments.push_back(distanceMeans.at(0));
+	distanceMeansGroups.push_back(passingArguments);
+//	LOG(LEVEL_INFO) << "Cossens = " << cosMeans.at(0);
 	
 	for (k=0; k<cosMeans.size(); k++)
 	{
@@ -476,6 +496,7 @@ vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions
 				differentThanAll = 0;
 				cosMeansGroups.at(j).push_back(cosMeans.at(k));
 				getPositionsGroups.at(j).push_back(getPositions.at(k));
+				distanceMeansGroups.at(j).push_back(distanceMeans.at(k));
 			}
 			if(differentThanAll == 1 && j == differentCosMeans.size() - 1)
 			{
@@ -487,6 +508,9 @@ vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions
 				passingArguments.clear();
 				passingArguments.push_back(getPositions.at(k));
 				getPositionsGroups.push_back(passingArguments);
+				passingArguments.clear();
+				passingArguments.push_back(distanceMeans.at(k));
+				distanceMeansGroups.push_back(passingArguments);
 				LOG(LEVEL_INFO) << "Cossens = " << cosMeans.at(k);
 			}
 		}
@@ -502,10 +526,11 @@ vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions
 		sensorUsed = (unsigned int)(getMeanRoundWorld(getPositionsGroups.at(i), laserMeasurements.size()));
 		
 		//gets distance to wall
-		deltaX = laserMeasurements.at(sensorUsed)*cos(r.getTh()+dtor((sensorUsed+180)%360));
-		deltaY = laserMeasurements.at(sensorUsed)*sin(r.getTh()+dtor((sensorUsed+180)%360));
-		lineDistance = deltaX*cos(lineTheta*M_PI/1000) + deltaY*sin(lineTheta*M_PI/1000);
-		
+		//deltaX = laserMeasurements.at(sensorUsed)*cos(r.getTh()+dtor((sensorUsed+180)%360));
+		//deltaY = laserMeasurements.at(sensorUsed)*sin(r.getTh()+dtor((sensorUsed+180)%360));
+		//lineDistance = deltaX*cos(lineTheta*M_PI/1000) + deltaY*sin(lineTheta*M_PI/1000);
+		lineDistance = getMean(distanceMeansGroups.at(i));
+				
 		//gets theta from 0-2*pi
 		lineTheta = lineTheta*M_PI/1000;
 		lineTheta = getBetterAngle(sensorUsed, lineTheta);
