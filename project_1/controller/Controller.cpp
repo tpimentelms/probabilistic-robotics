@@ -73,22 +73,30 @@ bool interpretMeasurements()
 {
 	vector<wallsFound> lines;
 	point corner;
+	point landmark;
+	pair<bool, point> returnedLandmark;
+	
+	LOG(LEVEL_INFO) << "Interpreting";
+
 	
 	lines = findLine();
+	returnedLandmark = make_pair(0, landmark);//findLandmark();
 	
 	//checks if something was found
-	if (lines.size() || findLandmark())
+	if (lines.size() || returnedLandmark.first)
 	{
-		//landmark found
-		if (findLandmark())
-		{
-		}
 		//found only a line
 		if (lines.size() == 1)
 		{
 			LOG(LEVEL_WARN) << "Line found";
 			LOG(LEVEL_INFO) << "Distance = " << lines.at(0).distance;
 			LOG(LEVEL_INFO) << "Theta = " << lines.at(0).angle;
+		}
+		//landmark found
+		if (returnedLandmark.first)
+		{
+			LOG(LEVEL_FATAL) << "Landmark Found";
+			landmark = returnedLandmark.second;
 		}
 		//found a corner
 		if (lines.size() == 2)
@@ -128,8 +136,8 @@ vector<wallsFound> findLine()
 	{
 		for(j=0; j<validLaserMeasurements.size(); j++)
 		{
-			deltaX = laserMeasurements.at(validLaserMeasurements.at(j))*cos(r.getTh()+dtor((validLaserMeasurements.at(j)+180)%360));
-			deltaY = laserMeasurements.at(validLaserMeasurements.at(j))*sin(r.getTh()+dtor((validLaserMeasurements.at(j)+180)%360));
+			deltaX = laserMeasurements.at(validLaserMeasurements.at(j))*cos(dtor((validLaserMeasurements.at(j)+180)%360));
+			deltaY = laserMeasurements.at(validLaserMeasurements.at(j))*sin(dtor((validLaserMeasurements.at(j)+180)%360));
 			houghMatrix(j, i) = deltaX*cos(i*M_PI/1000) + deltaY*sin(i*M_PI/1000);
 		}
 	}
@@ -198,9 +206,123 @@ point findCorner(vector<wallsFound> lines)
 	return corner;
 }
 
-bool findLandmark()
+pair<bool, point> findLandmark()
 {
-	return 0;
+	//variable declarations
+	point landmark;
+	int i, j, k;
+	int number, counter, outNumber;
+	double radius = 0.7;
+	double deltaX, deltaY, a, c;
+	vector<double> laserMeasurements = r.getLaserReadings();
+	vector<int> validLaserMeasurements = r.getValidLaserReadings();
+	vector<double> centerYCircle, centerYMeans, centerXCircle, centerXMeans;
+	vector<double> getPositions;
+	vector<wallsFound> lines;
+	mat houghMatrix = zeros<mat>(validLaserMeasurements.size(), 1000);
+	
+	//empties vectors used
+	centerYMeans.clear();
+	centerXMeans.clear();
+	getPositions.clear();
+	
+	//transforms measurements distances to hough circle space
+	for (i=0;i<1000;i++)
+	{
+		for(j=0; j<validLaserMeasurements.size(); j++)
+		{
+			deltaX = laserMeasurements.at(validLaserMeasurements.at(j))*cos(r.getTh()+dtor((validLaserMeasurements.at(j)+180)%360));
+			deltaY = laserMeasurements.at(validLaserMeasurements.at(j))*sin(r.getTh()+dtor((validLaserMeasurements.at(j)+180)%360));
+			
+			c = radius*radius - (deltaY - double(i)*3/500+3)*(deltaY - double(i)*3/500+3);
+			if(c>=0)
+			{
+				a = pow(c,0.5) - deltaX;
+				houghMatrix(j, i) = -a;
+//				LOG(LEVEL_WARN) << "Hough = " << -a;
+			}
+		}
+	}
+	
+	outNumber = 0;
+	
+	//checks which of them is part of a circle
+	for(j=0; j < validLaserMeasurements.size(); j++)
+	{
+		number = 0;
+		centerYCircle.clear();
+		centerXCircle.clear();
+		for (i=0;i<1000;i++)
+		{
+			if(houghMatrix(j, i) != 0 && (((abs(validLaserMeasurements.at(j)-validLaserMeasurements.at((j+30)%validLaserMeasurements.size()))>40) && (abs(validLaserMeasurements.at(j)-validLaserMeasurements.at((j-30)%validLaserMeasurements.size()))>40)) || validLaserMeasurements.size()<45))
+			{
+				counter = 0;
+				for (k=0; k<=20 && k <= validLaserMeasurements.size(); k++)
+				{
+					//counts how many points form a circle with another point
+					if (0.01 > abs(houghMatrix(j, i) - houghMatrix((j+k-10)%validLaserMeasurements.size(), i)) && (j+k-10)%validLaserMeasurements.size() != j)
+					{
+						counter = counter + 1;
+					}
+				}
+				if(counter > 16)
+				{
+					// gets x's and y's for possible circles and counts how many realy possible different circles pass trough a point
+					number = number + 1;
+					centerYCircle.push_back(i);
+					centerXCircle.push_back(abs(houghMatrix(j, i)));
+				}
+			}
+		}
+		if(number>0)
+		{
+					LOG(LEVEL_ERROR) << "Sensor = " << validLaserMeasurements.at(j);
+					LOG(LEVEL_ERROR) << "Number = " << number;
+		}
+
+		if (number<20 && number > 2)
+		{
+//			LOG(LEVEL_ERROR) << "Number = " << number;
+			//get means of all x's and y's with possible circles from each point
+			centerYMeans.push_back(getMean(centerYCircle));
+			centerXMeans.push_back(getMean(centerXCircle));
+			getPositions.push_back(validLaserMeasurements.at(j));
+			outNumber++;
+		}
+	}
+	
+	//checks if theres any landmark
+	if (centerYMeans.size() == 0 || outNumber < 0)
+	{
+		return make_pair(0, landmark);
+	}
+	
+//	LOG(LEVEL_ERROR) << "Number = " << outNumber;
+	
+	landmark.x = 5;
+	landmark.y = 5;
+	
+	return make_pair(1, landmark);
+	/*
+		//gets mean of all possible theta, from 0-1000, and which would be the most trustable sensor
+		lineTheta = getMean(cosMeans);
+		sensorUsed = (unsigned int)(getMean(getPositions));
+		
+		//gets distance to wall
+		lineDistance = getMean(distanceMeansGroups.at(i));
+				
+		//gets theta from 0-2*pi
+		lineTheta = lineTheta*M_PI/1000;
+		lineTheta = getBetterAngle(sensorUsed, lineTheta);
+		
+		//passes arguments to vector returned
+		singleLine.distance = lineDistance;
+		singleLine.angle = lineTheta;
+		lines.push_back(singleLine);
+	*/
+	//gets lines in a vector and returns them
+//	lines = getLines(cosMeans, getPositions, laserMeasurements, distanceMeans);
+	
 }
 
 mat predictMean(mat A, mat B)
@@ -452,7 +574,7 @@ double getMean(vector<double> array)
 
 double getBetterAngle (unsigned int sensorUsed, double lineTheta)
 {
-	double whereMeasurement = (r.getTh()+dtor((sensorUsed+180)%360));
+	double whereMeasurement = (dtor((sensorUsed+180)%360));
 	double diff1, diff2;
 	
 	diff1 = abs(whereMeasurement - lineTheta);
