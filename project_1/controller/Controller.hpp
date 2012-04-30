@@ -37,13 +37,12 @@ void kalmanFilter();
 
 bool interpretMeasurements();
 vector<wallsFound> findLine();
-bool findCorner();
+point findCorner(vector<wallsFound> lines);
 bool findLandmark();
 
 double randomGaussianNoise(double sigma, double mean);
 double getMeanRoundWorld(vector<double> array, int worldSize);
 double getMean(vector<double> array);
-double getMedian(vector<double> array);
 double getBetterAngle (unsigned int sensorUsed, double lineTheta);
 vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions, vector<double> laserMeasurements, vector<double> distanceMeans);
 

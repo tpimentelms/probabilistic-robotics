@@ -72,25 +72,31 @@ void sense()
 bool interpretMeasurements()
 {
 	unsigned int j;
-	bool foundSomething;
 	vector<wallsFound> lines;
+	point corner;
 	
 	lines = findLine();
 	
 	//checks if something was found
-	if (lines.at(0).distance || findLandmark())
+	if (lines.size() || findLandmark())
 	{
-		for(j=0; j<lines.size(); j++)
+		if (findLandmark())
 		{
-			LOG(LEVEL_INFO) << "Distance = " << lines.at(j).distance;
-			LOG(LEVEL_INFO) << "Theta = " << lines.at(j).angle;
 		}
-		
-		foundSomething = 1;
+		if (lines.size() == 1)
+		{
+			LOG(LEVEL_WARN) << "Line found";
+			LOG(LEVEL_INFO) << "Distance = " << lines.at(0).distance;
+			LOG(LEVEL_INFO) << "Theta = " << lines.at(0).angle;
+		}
 		if (lines.size() == 2)
 		{
-			findCorner();
+			LOG(LEVEL_ERROR) << "Corner Found";
+			corner = findCorner(lines);
+			LOG(LEVEL_INFO) << "Corner X = " << corner.x;
+			LOG(LEVEL_INFO) << "Corner Y = " << corner.y;
 		}
+		
 		return 1;
 	}
 	
@@ -108,7 +114,6 @@ vector<wallsFound> findLine()
 	vector<int> validLaserMeasurements = r.getValidLaserReadings();
 	vector<double> cosOfLine, cosMeans, distanceOfLine, distanceMeans;
 	vector<double> getPositions;
-	wallsFound singleLine;
 	vector<wallsFound> lines;
 	mat houghMatrix = zeros<mat>(validLaserMeasurements.size(), 1000);
 	
@@ -138,6 +143,7 @@ vector<wallsFound> findLine()
 			counter = 0;
 			for (k=0; k<=100 && k <= validLaserMeasurements.size(); k++)
 			{
+				//counts how many points form a line with another point
 				if (0.05 > abs(houghMatrix(j, i) - houghMatrix((j+k-50)%validLaserMeasurements.size(), i)) && k != 50)
 				{
 					counter = counter + 1;
@@ -145,6 +151,7 @@ vector<wallsFound> findLine()
 			}
 			if(counter > 60)
 			{
+				// gets angles and distances for possible lines and counts how many realy possible different lines pass trough a point
 				number = number + 1;
 				cosOfLine.push_back(i);
 				distanceOfLine.push_back(abs(houghMatrix(j, i)));
@@ -152,6 +159,7 @@ vector<wallsFound> findLine()
 		}
 		if (number>0)
 		{
+			//get means of all angles and distances with possible lines from each point
 			cosMeans.push_back(getMeanRoundWorld(cosOfLine, 1000));
 			distanceMeans.push_back(getMean(distanceOfLine));
 			getPositions.push_back(validLaserMeasurements.at(j));
@@ -161,19 +169,31 @@ vector<wallsFound> findLine()
 	//checks if theres any line
 	if (cosMeans.size() == 0)
 	{
-		singleLine.distance = 0;
-		lines.push_back(singleLine);
 		return lines;
 	}
 	
+	//gets lines in a vector and returns them
 	lines = getLines(cosMeans, getPositions, laserMeasurements, distanceMeans);
 	
 	return lines;
 }
 
-bool findCorner()
+point findCorner(vector<wallsFound> lines)
 {
-	return 0;
+	double a, b, c, d;
+	point corner;
+	
+	//parameters of both lines
+	a = -cos(lines.at(0).angle)/sin(lines.at(0).angle);
+	b = lines.at(0).distance/sin(lines.at(0).angle);
+	c = -cos(lines.at(1).angle)/sin(lines.at(1).angle);
+	d = lines.at(1).distance/sin(lines.at(1).angle);
+	
+	//find interssection of lines
+	corner.x = (d-b)/(a-c);
+	corner.y = a*corner.x + b;
+	
+	return corner;
 }
 
 bool findLandmark()
@@ -428,18 +448,6 @@ double getMean(vector<double> array)
 	return mean;
 }
 
-double getMedian(vector<double> array)
-{
-	unsigned int counter;
-	double mean = 0;
-	
-	for (counter = 0; counter < array.size(); counter++)
-		mean = mean + array.at(counter);
-	
-	mean = mean / array.size();
-	return mean;
-}
-
 double getBetterAngle (unsigned int sensorUsed, double lineTheta)
 {
 	double whereMeasurement = (r.getTh()+dtor((sensorUsed+180)%360));
@@ -461,8 +469,7 @@ double getBetterAngle (unsigned int sensorUsed, double lineTheta)
 
 vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions, vector<double> laserMeasurements, vector<double> distanceMeans)
 {
-	unsigned int k, j;
-	int i;
+	unsigned int i, k, j;
 	bool differentThanAll;
 	double lineTheta, lineDistance;
 	unsigned int sensorUsed;
@@ -517,8 +524,6 @@ vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions
 			}
 		}
 	}
-	
-	LOG(LEVEL_WARN) << cosMeansGroups.size() << " lines found";
 	
 	//getting information of every line given their already collected information
 	for (i=0; i<cosMeansGroups.size(); i++)
