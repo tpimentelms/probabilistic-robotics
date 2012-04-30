@@ -463,9 +463,7 @@ vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions
 {
 	unsigned int k, j;
 	int i;
-	int numberOfLines;
 	bool differentThanAll;
-//	double deltaX, deltaY;
 	double lineTheta, lineDistance;
 	unsigned int sensorUsed;
 	wallsFound singleLine;
@@ -473,18 +471,22 @@ vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions
 	vector<double> passingArguments;
 	vector<vector <double> > cosMeansGroups, getPositionsGroups, distanceMeansGroups;
 	vector<wallsFound> lines;
+		
+	passingArguments.clear();
 	
-	numberOfLines = 1;
-	
+	//splitting information in groups related to the different lines
+	//creating first group of lines
 	differentCosMeans.push_back(cosMeans.at(0));
-	cosMeansGroups.push_back(differentCosMeans);
-	passingArguments.clear();
-	passingArguments.push_back(getPositions.at(0));
+	
+	//initializing new groups
+	cosMeansGroups.push_back(passingArguments);
 	getPositionsGroups.push_back(passingArguments);
-	passingArguments.clear();
-	passingArguments.push_back(distanceMeans.at(0));
 	distanceMeansGroups.push_back(passingArguments);
-//	LOG(LEVEL_INFO) << "Cossens = " << cosMeans.at(0);
+	
+	//passing new arguments
+	cosMeansGroups.at(0).push_back(cosMeans.at(0));
+	getPositionsGroups.at(0).push_back(getPositions.at(0));
+	distanceMeansGroups.at(0).push_back(distanceMeans.at(0));
 	
 	for (k=0; k<cosMeans.size(); k++)
 	{
@@ -493,6 +495,7 @@ vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions
 		{
 			if (300 > abs(differentCosMeans.at(j) - cosMeans.at(k)) || 700 < abs(differentCosMeans.at(j) - cosMeans.at(k)))
 			{
+				//adding new information to existing groups of lines
 				differentThanAll = 0;
 				cosMeansGroups.at(j).push_back(cosMeans.at(k));
 				getPositionsGroups.at(j).push_back(getPositions.at(k));
@@ -501,44 +504,35 @@ vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions
 			if(differentThanAll == 1 && j == differentCosMeans.size() - 1)
 			{
 				differentCosMeans.push_back(cosMeans.at(k));
-				passingArguments.clear();
-				passingArguments.push_back(cosMeans.at(k));
-				numberOfLines++;
+				
+				//creating new groups of lines
 				cosMeansGroups.push_back(passingArguments);
-				passingArguments.clear();
-				passingArguments.push_back(getPositions.at(k));
 				getPositionsGroups.push_back(passingArguments);
-				passingArguments.clear();
-				passingArguments.push_back(distanceMeans.at(k));
 				distanceMeansGroups.push_back(passingArguments);
-				LOG(LEVEL_INFO) << "Cossens = " << cosMeans.at(k);
+				
+				//passing new arguments
+				cosMeansGroups.at(j+1).push_back(cosMeans.at(k));
+				getPositionsGroups.at(j+1).push_back(getPositions.at(k));
+				distanceMeansGroups.at(j+1).push_back(distanceMeans.at(k));
 			}
 		}
 	}
 	
-	LOG(LEVEL_WARN) << numberOfLines << " lines found";
+	LOG(LEVEL_WARN) << cosMeansGroups.size() << " lines found";
 	
-	for (i=0; i<numberOfLines; i++)
+	//getting information of every line given their already collected information
+	for (i=0; i<cosMeansGroups.size(); i++)
 	{
-		
-		//gets mean of all possible theta, from 0-pi, and which would be the most trustable sensor
+		//gets mean of all possible theta, from 0-1000, and which would be the most trustable sensor
 		lineTheta = getMeanRoundWorld(cosMeansGroups.at(i), 1000);
 		sensorUsed = (unsigned int)(getMeanRoundWorld(getPositionsGroups.at(i), laserMeasurements.size()));
 		
 		//gets distance to wall
-		//deltaX = laserMeasurements.at(sensorUsed)*cos(r.getTh()+dtor((sensorUsed+180)%360));
-		//deltaY = laserMeasurements.at(sensorUsed)*sin(r.getTh()+dtor((sensorUsed+180)%360));
-		//lineDistance = deltaX*cos(lineTheta*M_PI/1000) + deltaY*sin(lineTheta*M_PI/1000);
 		lineDistance = getMean(distanceMeansGroups.at(i));
 				
 		//gets theta from 0-2*pi
 		lineTheta = lineTheta*M_PI/1000;
 		lineTheta = getBetterAngle(sensorUsed, lineTheta);
-		
-		//LOG(LEVEL_INFO) << "Distance = " << lineDistance;
-		//LOG(LEVEL_INFO) << "Theta = " << lineTheta;
-		//LOG(LEVEL_INFO) << "Sensor Used = " << sensorUsed;
-		//LOG(LEVEL_INFO) << "Where? = " << (r.getTh()+dtor((sensorUsed+180)%360));
 		
 		//passes arguments to vector returned
 		singleLine.distance = lineDistance;
