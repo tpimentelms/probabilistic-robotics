@@ -26,19 +26,21 @@ int main();
 
 void move(double newV, double newW);
 
-void sense();
+vector<wallsFound> sense();
 
 mat predictMean();
 mat predictionCov(mat A);
 mat createAt();
 mat createBt();
+mat createCt();
 mat createUt();
 mat createMu();
 mat createRt();
+mat createQt();
 
-void kalmanFilter();
+void kalmanFilter(vector<wallsFound> lines);
 
-bool interpretMeasurements();
+vector<wallsFound> interpretMeasurements();
 vector<wallsFound> findLine();
 pair<bool, point> findCorner(vector<wallsFound> lines);
 pair<bool, point> findLandmark();
@@ -50,7 +52,7 @@ double getBetterAngle (unsigned int sensorUsed, double lineTheta);
 vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions, vector<double> laserMeasurements, vector<double> distanceMeans);
 pair<int, int> findLandmarkClusterOfMeasures(vector<int> validLaserMeasurements, vector<double> laserMeasurements);
 
-void strategy();
+void strategy(vector<wallsFound> lines);
 void followWall(vector<wallsFound> lines);
 
 #endif

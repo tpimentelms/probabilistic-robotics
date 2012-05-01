@@ -44,7 +44,7 @@ class Robot
 		void setPose(double x, double y, double th);
 		void setStrategy(int strategy);
 		
-        void updateState();
+        void updateState(mat newMu);
         void updateSigma(mat newSigma);
         
 		void printInfo();

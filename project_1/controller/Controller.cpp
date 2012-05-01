@@ -10,34 +10,34 @@ Robot r;
 
 int main()
 {
+	vector<wallsFound> lines;
     laserProxy.RequestGeom();
 	
 	worldMap.createKnownMap();
 	
     while(true)
     {
-		r.updateState();
+		//r.updateState();
 		
-		//r.printInfoComparison();
+		r.printInfoComparison();
         
         /*
          * TODO: remove this setVel and setRotVel!
          * experimental circle, just to see if everything is OK.
          */
-		
-		strategy();
-		
         
 		move(r.getVel(), r.getRotVel());
-		sense();
-		kalmanFilter();
+		lines = sense();
+		kalmanFilter(lines);
+		
+		strategy(lines);
 	}
 	
 	return 0;
 }
 
 void move(double v, double w)
-{	
+{
 	r.setVel(v);
 	r.setRotVel(w);
 	
@@ -49,12 +49,13 @@ void move(double v, double w)
 	{
 		w = randomGaussianNoise(r.getMoveRotVelSigma(), w);
 	}
-	
 	p2dProxy.SetSpeed(v, w);
 }
 
-void sense()
+vector<wallsFound> sense()
 {
+	vector<wallsFound> lines;
+	
 	r.updateLaserReadings();
 	//r.printLaserReadings();
 	//r.printValidLaserReadings();
@@ -67,10 +68,11 @@ void sense()
      * interpretMeasurements()
      */
      
-     //interpretMeasurements();
+     lines = interpretMeasurements();
+     return lines;
 }
 
-bool interpretMeasurements()
+vector<wallsFound> interpretMeasurements()
 {
 	vector<wallsFound> lines;
 	point corner;
@@ -87,38 +89,36 @@ bool interpretMeasurements()
 		//found only a line
 		if (lines.size() == 1)
 		{
-			LOG(LEVEL_WARN) << "Line found";
+/*			LOG(LEVEL_WARN) << "Line found";
 			LOG(LEVEL_INFO) << "Distance = " << lines.at(0).distance;
 			LOG(LEVEL_INFO) << "Theta = " << lines.at(0).angle;
-		}
+*/		}
 		//landmark found
 		if (returnedLandmark.first)
 		{
 			landmark = returnedLandmark.second;
-			LOG(LEVEL_WARN) << "Landmark Found";
+/*			LOG(LEVEL_WARN) << "Landmark Found";
 			LOG(LEVEL_INFO) << "Landmark X = " << landmark.x;
 			LOG(LEVEL_INFO) << "Landmark Y = " << landmark.y;
-		}
+*/		}
 		//found a corner
 		if (lines.size() == 2)
 		{
 			returnedCorner = findCorner(lines);
 			corner = returnedCorner.second;
 			
-			if(returnedCorner.first == 1)
+/*			if(returnedCorner.first == 1)
 				LOG(LEVEL_WARN) << "Open Corner Found";
 			else
 				LOG(LEVEL_WARN) << "Closed Corner Found";
 			
 			LOG(LEVEL_INFO) << "Corner X = " << corner.x;
 			LOG(LEVEL_INFO) << "Corner Y = " << corner.y;
-		}
-		
-		return 1;
+*/		}
 	}
 	
 	
-	return 0;
+	return lines;
 }
 
 vector<wallsFound> findLine()
@@ -338,6 +338,17 @@ mat createBt()
 
 }
 
+mat createCt()
+{
+	mat C = zeros<mat>(3,7);
+	
+	C(0, 0) = 1;
+	C(1, 1) = 1;
+	C(2, 2) = 1;
+	
+	return C;
+}
+
 mat createUt()
 {
 	mat ut = zeros<mat>(2,1);
@@ -378,14 +389,88 @@ mat createRt()
 	return R;
 }
 
-
-void kalmanFilter()
+mat createQt()
 {
+	mat Q = zeros<mat>(3,3);
+	
+	//Covariance of measurements
+	Q(0, 0) = 0.2;
+	Q(1, 1) = 0.2;
+	Q(2, 2) = 0.2;
+	
+	return Q;
+}
+
+mat createZt(double robotX, double robotY, double robotTheta)
+{
+	mat Z = zeros<mat>(3,1);
+	
+	//Covariance of measurements
+	Z(0, 0) = robotX;
+	Z(1, 0) = robotY;
+	Z(2, 0) = robotTheta;
+	
+	return Z;
+}
+
+
+void kalmanFilter(vector<wallsFound> lines)
+{
+	double theta1, theta2, robotX, robotY, robotTheta;
+	
 	mat A = createAt();
 	mat B = createBt();
 	mat muBar = predictMean(A, B);
 	mat sigmaBar = predictiCov(A);
-	r.updateSigma(sigmaBar);	
+	r.updateSigma(sigmaBar);
+	
+	if(lines.size() == 2)
+	{
+		pair<bool, point> corner = findCorner(lines);
+		//only does measurement update if seeing the corner. needs something to be oriented from.
+		if (corner.first)
+		{
+			point a = corner.second;
+			theta1 = lines.at(0).angle;
+			theta2 = lines.at(1).angle;
+			
+			if(((theta1 - theta2) > 0 && (theta1 - theta2) < M_PI) || (theta1 - theta2) < -M_PI)
+			{
+				robotX = lines.at(0).distance;
+				robotY = -lines.at(1).distance;
+				robotTheta = dtor(int(rtod(5*M_PI/2 - theta2)) % 360);
+			}
+			else
+			{
+				robotY = -lines.at(0).distance;
+				robotX = lines.at(1).distance;
+				robotTheta = dtor(int(rtod(5*M_PI/2 - theta1)) % 360);
+			}
+			mat C = createCt();
+			mat Q = createQt();
+			mat Z = createZt(robotX, robotY, robotTheta);
+			
+			mat K = sigmaBar*C.t()*(C*sigmaBar*C.t() + Q).i();
+			muBar = muBar + K*(Z-C*muBar);
+			sigmaBar = (eye<mat>(7,7)-K*C)*sigmaBar;
+			
+			/*
+			LOG(LEVEL_WARN) << "Open Corner Found";
+			LOG(LEVEL_WARN) << "Theta 2 = " << theta2;
+			LOG(LEVEL_WARN) << "Theta 1 = " << theta1;
+			LOG(LEVEL_WARN) << "Robot Y = " << lines.at(0).distance;
+			LOG(LEVEL_WARN) << "Robot Theta = " << lines.at(1).distance;
+			LOG(LEVEL_WARN) << "Robot X = " << robotX;
+			LOG(LEVEL_WARN) << "Robot Y = " << robotY;
+			LOG(LEVEL_WARN) << "Robot Theta = " << robotTheta << "Real Theta" << p2dProxy.GetYaw();
+			*/
+			
+		}
+	}
+	
+	r.updateState(muBar);
+	r.updateSigma(sigmaBar);
+	
 	//
 	//void postionUpdate(muBar, covBar)
     /*
@@ -395,22 +480,16 @@ void kalmanFilter()
      */
 }
 
-void strategy()
+void strategy(vector<wallsFound> lines)
 {
 	int strategy_state = r.getStrategy();
 	
 	switch(strategy_state)
 	{
 		case 1://Estratégia de busca do canto
-			
-			bool detectObject = interpretMeasurements();
-			
-			if(detectObject == 1)
+			if(lines.size() == 1)
 			{
-				vector<wallsFound> lines = findLine();
 				followWall(lines);
-				r.setVel(0);
-				r.setRotVel(0);
 			}
 			else
 			{
