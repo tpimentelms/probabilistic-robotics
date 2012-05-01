@@ -276,9 +276,6 @@ void updateLandmarkState(point landmark)
 	double landmarkX = sin(r.getTh())*landmark.x + cos(r.getTh())*landmark.y + r.getX();
 	double landmarkY = -cos(r.getTh())*landmark.x + sin(r.getTh())*landmark.y + r.getY();
 	
-			LOG(LEVEL_ERROR) << "Landmark Y = " << landmarkY;
-			LOG(LEVEL_ERROR) << "Landmark X = " << landmarkX;
-	
 	mat muBar = createMu();
 	mat sigmaBar = r.getSigma();
 		
@@ -442,8 +439,8 @@ mat createQtLandmark()
 	mat Q = zeros<mat>(2,2);
 	
 	//Covariance of measurements
-	Q(0, 0) = 0.2;
-	Q(1, 1) = 0.2;
+	Q(0, 0) = 0.01;
+	Q(1, 1) = 0.01;
 	
 	return Q;
 }

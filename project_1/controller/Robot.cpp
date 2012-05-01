@@ -147,8 +147,8 @@ void Robot::printInfo()
 void Robot::printInfoComparison()
 {
 	LOG(LEVEL_WARN) << "Robot comparison info";
-	LOG(LEVEL_INFO) << "X = " << this->getX() << "\t True X = " << p2dProxy.GetXPos() << "\t Delta X = " << this->getX()-p2dProxy.GetXPos();
-	LOG(LEVEL_INFO) << "Y = " << this->getY() << "\t True Y = " << p2dProxy.GetYPos() << "\t Delta Y = " << this->getY()-p2dProxy.GetYPos();
+	LOG(LEVEL_INFO) << "X = " << this->getX() << "\t True X = " << p2dProxy.GetXPos() - 5 << "\t Delta X = " << this->getX()-p2dProxy.GetXPos() + 5;
+	LOG(LEVEL_INFO) << "Y = " << this->getY() << "\t True Y = " << p2dProxy.GetYPos() + 3 << "\t Delta Y = " << this->getY()-p2dProxy.GetYPos() - 3;
 	LOG(LEVEL_INFO) << "Th = " << rtod(this->getTh()) << "\t True Th = " << rtod(p2dProxy.GetYaw()) << "\t Delta Th = " << rtod(this->getTh()-p2dProxy.GetYaw());
 	LOG(LEVEL_INFO) << "Vel = " << this->getVel() << "\t True Vel = " << p2dProxy.GetXSpeed() << "\t Delta Vel = " << this->getVel()-p2dProxy.GetXSpeed();
 	LOG(LEVEL_INFO) << "RotVel = " << this->getRotVel() << " True RotVel = " << p2dProxy.GetYawSpeed() << "\t Delta RotVel = " << this->getRotVel()-p2dProxy.GetYawSpeed();
