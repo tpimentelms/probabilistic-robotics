@@ -43,11 +43,11 @@ void move(double v, double w)
 	
 	if(v != 0)
 	{
-		v = randomGaussianNoise(r.getMoveVelSigma(), v);
+		v = randomGaussianNoise(r.getMoveVelSigma()*v, v);
 	}
 	if(v!=0 || w != 0)
 	{
-		w = randomGaussianNoise(r.getMoveRotVelSigma(), w);
+		w = randomGaussianNoise(r.getMoveRotVelSigma()*w, w);
 	}
 	p2dProxy.SetSpeed(v, w);
 }
@@ -487,14 +487,26 @@ void strategy(vector<wallsFound> lines)
 	switch(strategy_state)
 	{
 		case 1://Estratégia de busca do canto
-			if(lines.size() == 1)
+			
+//			bool detectObject = interpretMeasurements();
+			vector<wallsFound> lines = findLine();
+
+			
+			if(lines.size() >= 1)
 			{
+				vector<wallsFound> lines = findLine();
 				followWall(lines);
+				wallFound = 0;
+
 			}
 			else
 			{
-				r.setVel(0.5);
+				r.setVel(0.3);
 				r.setRotVel(0);
+				if(wallFound == 1)
+				{
+					r.setRotVel(-0.3);
+				}
 			}
 		break;
 	}
@@ -502,8 +514,36 @@ void strategy(vector<wallsFound> lines)
 
 void followWall(vector<wallsFound> lines)
 {
-//	LOG(LEVEL_WARN) << "size = ", (int) lines.size();
-//	LOG(LEVEL_WARN) << "at(0) = ", (int) lines[0].distance;
+	//double rotation;
+	int i = 0;
+	double param = 0.1;
+	double param2 = 5;
+	double rotVel;
+	static double CTE;
+	double diffCTE;
+	int line = 1.5;
+	if(lines.size() == 2)
+	{
+		LOG(LEVEL_WARN) << "Two fucking lines." << endl << "Angle 0 = " << lines[0].angle << endl << "Angle 1 = " << lines[1].angle;
+		if (lines[0].angle - lines[1].angle > 0)
+		{
+			i = 1;
+			line = 2.0;
+		}
+	}
+	
+	diffCTE = lines[i].distance - line - CTE;
+	CTE = lines[i].distance - line;
+	r.setVel(0.2);
+	rotVel = -param*CTE - param2*diffCTE;
+	LOG(LEVEL_WARN) << "Distance = " << lines[i].distance - 1.5;
+	LOG(LEVEL_WARN) << "Angle 0 = " << lines[0].angle*(360/(2*M_PI));
+	LOG(LEVEL_WARN) << "rotVel = " << rotVel*(360/(2*M_PI));
+	LOG(LEVEL_WARN) << "CTE = " << CTE;
+	LOG(LEVEL_WARN) << "diffCTE = " << diffCTE << endl;
+
+	r.setRotVel(rotVel);
+	
 	return;
 	
 }
