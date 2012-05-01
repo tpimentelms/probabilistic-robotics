@@ -27,6 +27,8 @@ class Robot
 		double getX();
 		double getY();
 		double getTh();
+		double getLandmarkX();
+		double getLandmarkY();
 		double getVel();
 		double getRotVel();
 		int    getStrategy();
@@ -39,6 +41,8 @@ class Robot
 		void setX(double x);
 		void setY(double y);
 		void setTh(double th);
+		void setLandmarkX(double landmarkX);
+		void setLandmarkY(double landmarkY);
 		void setVel(double v);
 		void setRotVel(double w);
 		void setPose(double x, double y, double th);
@@ -64,7 +68,7 @@ class Robot
 
 	
 	private:
-		double x, y, th;
+		double x, y, th, landmarkX, landmarkY;
 		double v, w;
 		double moveVelSigma, moveRotVelSigma; // Needs to put this in a matrix, covariance of Ut
 		vector<double> laserReadings;

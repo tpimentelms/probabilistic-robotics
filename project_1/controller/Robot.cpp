@@ -27,6 +27,16 @@ double Robot::getTh()
 	return this->th;
 }
 
+double Robot::getLandmarkX()
+{
+	return this->landmarkX;
+}
+
+double Robot::getLandmarkY()
+{
+	return this->landmarkY;
+}
+
 double Robot::getVel()
 {
 	return this->v;
@@ -72,6 +82,16 @@ void Robot::setTh(double th)
 	this->th = th;
 }
 
+void Robot::setLandmarkX(double landmarkX)
+{
+	this->landmarkX = landmarkX;
+}
+
+void Robot::setLandmarkY(double landmarkY)
+{
+	this->landmarkY = landmarkY;
+}
+
 void Robot::setVel(double v)
 {
 	this->v = v;
@@ -105,6 +125,8 @@ void Robot::updateState(mat newMu)
 	this->setTh(newMu(2,0));
 	this->setVel(newMu(3,0));//  No errors present in this measurements, so don't use it
 	this->setRotVel(newMu(4,0));
+	this->setLandmarkX(newMu(5,0));
+	this->setLandmarkY(newMu(6,0));
 }
 
 void Robot::updateSigma(mat newSigma)
@@ -130,6 +152,8 @@ void Robot::printInfoComparison()
 	LOG(LEVEL_INFO) << "Th = " << rtod(this->getTh()) << "\t True Th = " << rtod(p2dProxy.GetYaw()) << "\t Delta Th = " << rtod(this->getTh()-p2dProxy.GetYaw());
 	LOG(LEVEL_INFO) << "Vel = " << this->getVel() << "\t True Vel = " << p2dProxy.GetXSpeed() << "\t Delta Vel = " << this->getVel()-p2dProxy.GetXSpeed();
 	LOG(LEVEL_INFO) << "RotVel = " << this->getRotVel() << " True RotVel = " << p2dProxy.GetYawSpeed() << "\t Delta RotVel = " << this->getRotVel()-p2dProxy.GetYawSpeed();
+	LOG(LEVEL_INFO) << "Landmark X = " << this->getLandmarkX() << " True Landmark X = " << 3.5 << "\t Delta Landmark X = " << this->getLandmarkX()-3.5;
+	LOG(LEVEL_INFO) << "Landmark Y = " << this->getLandmarkY() << " True Landmark Y = " << -5 << "\t Delta Landmark Y = " << this->getLandmarkY()+5;
 }
 
 void Robot::updateLaserReadings()

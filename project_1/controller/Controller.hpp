@@ -33,10 +33,15 @@ mat predictionCov(mat A);
 mat createAt();
 mat createBt();
 mat createCt();
+mat createCtLandmark();
 mat createUt();
 mat createMu();
 mat createRt();
 mat createQt();
+mat createQtLandmark();
+mat createZt(double robotX, double robotY, double robotTheta);
+mat createZtLandmark(double landmarkX, double landmarkY);
+void updateLandmarkState(point landmark);
 
 void kalmanFilter(vector<wallsFound> lines);
 

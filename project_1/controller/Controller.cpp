@@ -28,6 +28,7 @@ int main()
         
 		move(r.getVel(), r.getRotVel());
 		lines = sense();
+
 		kalmanFilter(lines);
 		
 		strategy(lines);
@@ -97,6 +98,7 @@ vector<wallsFound> interpretMeasurements()
 		if (returnedLandmark.first)
 		{
 			landmark = returnedLandmark.second;
+			updateLandmarkState(landmark);
 /*			LOG(LEVEL_WARN) << "Landmark Found";
 			LOG(LEVEL_INFO) << "Landmark X = " << landmark.x;
 			LOG(LEVEL_INFO) << "Landmark Y = " << landmark.y;
@@ -269,6 +271,29 @@ pair<bool, point> findLandmark()
 	return make_pair(1, landmark);
 }
 
+void updateLandmarkState(point landmark)
+{
+	double landmarkX = sin(r.getTh())*landmark.x + cos(r.getTh())*landmark.y + r.getX();
+	double landmarkY = -cos(r.getTh())*landmark.x + sin(r.getTh())*landmark.y + r.getY();
+	
+			LOG(LEVEL_ERROR) << "Landmark Y = " << landmarkY;
+			LOG(LEVEL_ERROR) << "Landmark X = " << landmarkX;
+	
+	mat muBar = createMu();
+	mat sigmaBar = r.getSigma();
+		
+	mat C = createCtLandmark();
+	mat Q = createQtLandmark();
+	mat Z = createZtLandmark(landmarkX, landmarkY);
+		
+	mat K = sigmaBar*C.t()*(C*sigmaBar*C.t() + Q).i();
+	muBar = muBar + K*(Z-C*muBar);
+	sigmaBar = (eye<mat>(7,7)-K*C)*sigmaBar;
+		
+	r.updateState(muBar);
+	r.updateSigma(sigmaBar);
+}
+
 mat predictMean(mat A, mat B)
 {
 	mat ut = createUt();
@@ -349,6 +374,17 @@ mat createCt()
 	return C;
 }
 
+mat createCtLandmark()
+{
+	mat C = zeros<mat>(2,7);
+	
+	C(0, 5) = 1;
+	C(1, 6) = 1;
+	
+	return C;
+	
+}
+
 mat createUt()
 {
 	mat ut = zeros<mat>(2,1);
@@ -368,8 +404,8 @@ mat createMu()
 	mu(2,0) = r.getTh();
 	mu(3,0) = r.getVel();
 	mu(4,0) = r.getRotVel();
-	mu(5,0) = 0;
-	mu(6,0) = 0;
+	mu(5,0) = r.getLandmarkX();
+	mu(6,0) = r.getLandmarkY();
 	
 	return mu;
 } 
@@ -401,14 +437,36 @@ mat createQt()
 	return Q;
 }
 
+mat createQtLandmark()
+{
+	mat Q = zeros<mat>(2,2);
+	
+	//Covariance of measurements
+	Q(0, 0) = 0.2;
+	Q(1, 1) = 0.2;
+	
+	return Q;
+}
+
 mat createZt(double robotX, double robotY, double robotTheta)
 {
 	mat Z = zeros<mat>(3,1);
 	
-	//Covariance of measurements
+	//Measurements
 	Z(0, 0) = robotX;
 	Z(1, 0) = robotY;
 	Z(2, 0) = robotTheta;
+	
+	return Z;
+}
+
+mat createZtLandmark(double landmarkX, double landmarkY)
+{
+	mat Z = zeros<mat>(2,1);
+	
+	//Measurements
+	Z(0, 0) = landmarkX;
+	Z(1, 0) = landmarkY;
 	
 	return Z;
 }
@@ -483,6 +541,7 @@ void kalmanFilter(vector<wallsFound> lines)
 void strategy(vector<wallsFound> lines)
 {
 	int strategy_state = r.getStrategy();
+	bool wallFound = 0;
 	
 	switch(strategy_state)
 	{
@@ -496,7 +555,7 @@ void strategy(vector<wallsFound> lines)
 			{
 				vector<wallsFound> lines = findLine();
 				followWall(lines);
-				wallFound = 0;
+				wallFound = 1;
 
 			}
 			else
