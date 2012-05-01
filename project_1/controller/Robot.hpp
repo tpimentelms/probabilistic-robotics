@@ -54,6 +54,7 @@ class Robot
 		vector<double> getLaserReadings();
 		vector<int> getValidLaserReadings();
 		double getOneLaserReading(unsigned int value);
+		double getIfValidLaserReading(unsigned int value);
 		
 		void printLaserReadings();
 		void printValidLaserReadings();

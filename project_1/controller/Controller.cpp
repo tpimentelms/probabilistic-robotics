@@ -18,14 +18,14 @@ int main()
     {
 		r.updateState();
 		
-		r.printInfoComparison();
+		//r.printInfoComparison();
         
         /*
          * TODO: remove this setVel and setRotVel!
          * experimental circle, just to see if everything is OK.
          */
 		
-		//strategy();
+		strategy();
 		
         
 		move(r.getVel(), r.getRotVel());
@@ -67,7 +67,7 @@ void sense()
      * interpretMeasurements()
      */
      
-     interpretMeasurements();
+     //interpretMeasurements();
 }
 
 bool interpretMeasurements()
@@ -75,6 +75,7 @@ bool interpretMeasurements()
 	vector<wallsFound> lines;
 	point corner;
 	point landmark;
+	pair<bool, point> returnedCorner;
 	pair<bool, point> returnedLandmark;
 	
 	lines = findLine();
@@ -101,8 +102,14 @@ bool interpretMeasurements()
 		//found a corner
 		if (lines.size() == 2)
 		{
-			corner = findCorner(lines);
-			LOG(LEVEL_WARN) << "Corner Found";
+			returnedCorner = findCorner(lines);
+			corner = returnedCorner.second;
+			
+			if(returnedCorner.first == 1)
+				LOG(LEVEL_WARN) << "Open Corner Found";
+			else
+				LOG(LEVEL_WARN) << "Closed Corner Found";
+			
 			LOG(LEVEL_INFO) << "Corner X = " << corner.x;
 			LOG(LEVEL_INFO) << "Corner Y = " << corner.y;
 		}
@@ -188,9 +195,10 @@ vector<wallsFound> findLine()
 	return lines;
 }
 
-point findCorner(vector<wallsFound> lines)
+pair<bool, point> findCorner(vector<wallsFound> lines)
 {
 	double a, b, c, d;
+	double theta, valid;
 	point corner;
 	
 	//parameters of both lines
@@ -201,9 +209,26 @@ point findCorner(vector<wallsFound> lines)
 	
 	//find interssection of lines
 	corner.y = (d-b)/(a-c);
-	corner.x = -(a*corner.x + b);
+	corner.x = -(a*corner.y + b);
 	
-	return corner;
+	theta = int(rtod(atan2(corner.y, corner.x)));
+	if(theta < 0)
+	{
+		theta += 360;
+	}
+	
+	valid = r.getIfValidLaserReading(theta+45);
+	if (valid == -1)
+	{
+		return make_pair(1, corner);
+		
+	}
+	else
+	{
+		return make_pair(0, corner);
+	}
+		
+	
 }
 
 pair<bool, point> findLandmark()

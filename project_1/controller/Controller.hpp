@@ -40,7 +40,7 @@ void kalmanFilter();
 
 bool interpretMeasurements();
 vector<wallsFound> findLine();
-point findCorner(vector<wallsFound> lines);
+pair<bool, point> findCorner(vector<wallsFound> lines);
 pair<bool, point> findLandmark();
 
 double randomGaussianNoise(double sigma, double mean);

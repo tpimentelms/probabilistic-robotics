@@ -174,6 +174,22 @@ double Robot::getOneLaserReading(unsigned int value)
 	return this->laserReadings.at(value);
 }
 
+double Robot::getIfValidLaserReading(unsigned int value)
+{
+	if (this->laserReadings.size() < value)
+	{
+		LOG(LEVEL_ERROR) << "Laser info";
+		LOG(LEVEL_ERROR) << "Trying to access invalid laser data.";
+		
+		return -1;
+	}
+	
+	if(laserReadings.at(value) > 3.7)
+		return -1;
+	
+	return this->laserReadings.at(value);
+}
+
 void Robot::printLaserReadings()
 {
 	if (this->laserReadings.size() == 0)
