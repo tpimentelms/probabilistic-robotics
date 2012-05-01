@@ -100,9 +100,9 @@ void Robot::updateState()
     playerRobot.Read();
     
     // cant use gps, this is wrong
-	this->setX(p2dProxy.GetXPos());
-	this->setY(p2dProxy.GetYPos());
-	this->setTh(p2dProxy.GetYaw());
+	//this->setX(p2dProxy.GetXPos());
+	//this->setY(p2dProxy.GetYPos());
+	//this->setTh(p2dProxy.GetYaw());
 	//this->setVel(p2dProxy.GetXSpeed());//  No errors present in this measurements, so don't use it
 	//this->setRotVel(p2dProxy.GetYawSpeed());
 }

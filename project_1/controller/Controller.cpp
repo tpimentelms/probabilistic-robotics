@@ -18,13 +18,14 @@ int main()
     {
 		r.updateState();
 		
-		//r.printInfoComparison();
+		r.printInfoComparison();
         
         /*
          * TODO: remove this setVel and setRotVel!
          * experimental circle, just to see if everything is OK.
          */
-		strategy();
+		
+		//strategy();
 		
         
 		move(r.getVel(), r.getRotVel());
@@ -44,7 +45,7 @@ void move(double v, double w)
 	{
 		v = randomGaussianNoise(r.getMoveVelSigma(), v);
 	}
-	if(w != 0)
+	if(v!=0 || w != 0)
 	{
 		w = randomGaussianNoise(r.getMoveRotVelSigma(), w);
 	}
@@ -53,7 +54,7 @@ void move(double v, double w)
 }
 
 void sense()
-{	
+{
 	r.updateLaserReadings();
 	//r.printLaserReadings();
 	//r.printValidLaserReadings();
@@ -77,7 +78,7 @@ bool interpretMeasurements()
 	pair<bool, point> returnedLandmark;
 	
 	lines = findLine();
-	//returnedLandmark = make_pair(0, landmark);//findLandmark();
+	returnedLandmark = findLandmark();//make_pair(0, landmark);
 	
 	//checks if something was found
 	if (lines.size() || returnedLandmark.first)
@@ -85,20 +86,23 @@ bool interpretMeasurements()
 		//found only a line
 		if (lines.size() == 1)
 		{
-			//LOG(LEVEL_WARN) << "Line found";
-			//LOG(LEVEL_INFO) << "Distance = " << lines.at(0).distance;
-			//LOG(LEVEL_INFO) << "Theta = " << lines.at(0).angle;
+			LOG(LEVEL_WARN) << "Line found";
+			LOG(LEVEL_INFO) << "Distance = " << lines.at(0).distance;
+			LOG(LEVEL_INFO) << "Theta = " << lines.at(0).angle;
 		}
 		//landmark found
-		/*if (returnedLandmark.first)
+		if (returnedLandmark.first)
 		{
 			landmark = returnedLandmark.second;
-		}*/
+			LOG(LEVEL_WARN) << "Landmark Found";
+			LOG(LEVEL_INFO) << "Landmark X = " << landmark.x;
+			LOG(LEVEL_INFO) << "Landmark Y = " << landmark.y;
+		}
 		//found a corner
 		if (lines.size() == 2)
 		{
 			corner = findCorner(lines);
-			LOG(LEVEL_ERROR) << "Corner Found";
+			LOG(LEVEL_WARN) << "Corner Found";
 			LOG(LEVEL_INFO) << "Corner X = " << corner.x;
 			LOG(LEVEL_INFO) << "Corner Y = " << corner.y;
 		}
@@ -147,15 +151,15 @@ vector<wallsFound> findLine()
 		for (i=0;i<1000;i++)
 		{
 			counter = 0;
-			for (k=0; k<=100 && k <= validLaserMeasurements.size(); k++)
+			for (k=0; k<=60 && k <= validLaserMeasurements.size(); k++)
 			{
 				//counts how many points form a line with another point
-				if (0.05 > abs(houghMatrix(j, i) - houghMatrix((j+k-50)%validLaserMeasurements.size(), i)) && k != 50)
+				if (0.08 > abs(houghMatrix(j, i) - houghMatrix((j+k-30)%validLaserMeasurements.size(), i)) && k != 30)
 				{
 					counter = counter + 1;
 				}
 			}
-			if(counter > 60)
+			if(counter > 40)
 			{
 				// gets angles and distances for possible lines and counts how many realy possible different lines pass trough a point
 				number = number + 1;
@@ -374,14 +378,11 @@ void strategy()
 	{
 		case 1://Estratégia de busca do canto
 			
-//			bool detectObject = interpretMeasurements();
-			vector<wallsFound> lines = findLine();
-
+			bool detectObject = interpretMeasurements();
 			
-			if(lines.size() >= 1)
+			if(detectObject == 1)
 			{
 				vector<wallsFound> lines = findLine();
-				LOG(LEVEL_WARN) << "size = ", (int) lines.size();
 				followWall(lines);
 				r.setVel(0);
 				r.setRotVel(0);
@@ -397,74 +398,8 @@ void strategy()
 
 void followWall(vector<wallsFound> lines)
 {
-	//double rotation;
-	int i = 0;
-	double param = 0.5;
-	double rotVel;
-	double crosstrackError;
-	LOG(LEVEL_WARN) << "It's a wall" << lines[0].distance;
-	if(lines.size() == 2)
-	{
-		LOG(LEVEL_WARN) << "Two fucking lines." << endl << "Angle 0 = " << lines[0].angle << endl << "Angle 1 = " << lines[1].angle;
-		if (abs(lines[0].angle) > abs(lines[1].angle))
-		{
-			i = 1;
-		}
-	}
-	if(lines[i].angle > M_PI)
-	{
-		lines[i].angle = lines[i].angle - 2*M_PI;
-	}
-
-	crosstrackError = lines[i].distance - 1;
-	r.setVel(0.3);
-	rotVel = param*crosstrackError;
-	LOG(LEVEL_WARN) << "Angle = " << rotVel;
-	r.setRotVel(rotVel);
-	/*if((lines[i].angle > 0 && lines[i].angle < 80*(2*M_PI/360)) || (lines[i].angle < -100*(2*M_PI/360)))
-	{
-		rotation = 90*(2*M_PI/360) - abs(lines[i].angle);
-		r.setRotVel(rotation/3);
-		LOG(LEVEL_WARN) << "Angle = " <<  lines[i].angle*(360/(2*M_PI));
-		if(lines[i].distance > 0.8)
-		{
-			r.setVel(0.1);
-		}
-		else
-		{
-			r.setVel(0);
-		}
-		return;
-
-	}
-	if((lines[i].angle <= 0 && lines[i].angle > -80*(2*M_PI/360)) || (lines[i].angle > 100*(2*M_PI/360)))
-	{
-		r.setVel(0.1);
-		rotation = 90*(2*M_PI/360) - abs(lines[i].angle);
-		r.setRotVel(rotation/3);
-		LOG(LEVEL_WARN) << "Angle = " <<  lines[i].angle*(360/(2*M_PI)) << "rotation = " << rotation*(360/(2*M_PI));
-		if(lines[i].distance > 0.8)
-		{
-			r.setVel(0.1);
-		}
-		else
-		{
-			r.setVel(0);
-		}
-		return;
-	}
-	else
-	{
-		LOG(LEVEL_ERROR) << "Angle = " <<  lines[i].angle*(360/(2*M_PI));
-		LOG(LEVEL_ERROR) << "STOOOOOOOOOOOP!!!!!!!!!!!!!";
-		r.setVel(0.5);
-		r.setRotVel(0);
-		if(lines[i].distance > 1.6)
-		{
-			rotation = 90*(2*M_PI/360) - abs(lines[i].angle);
-			r.setRotVel(rotation/15);
-		}
-	}*/
+//	LOG(LEVEL_WARN) << "size = ", (int) lines.size();
+//	LOG(LEVEL_WARN) << "at(0) = ", (int) lines[0].distance;
 	return;
 	
 }
