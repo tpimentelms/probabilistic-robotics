@@ -20,6 +20,7 @@ int main()
 		//r.updateState();
 		
 		r.printInfoComparison();
+		r.printSigmaComparison();
         
         /*
          * TODO: remove this setVel and setRotVel!
@@ -27,6 +28,7 @@ int main()
          */
         
 		move(r.getVel(), r.getRotVel());
+		
 		lines = sense();
 
 		kalmanFilter(lines);
@@ -42,14 +44,12 @@ void move(double v, double w)
 	r.setVel(v);
 	r.setRotVel(w);
 	
-	if(v != 0)
-	{
-		v = randomGaussianNoise(r.getMoveVelSigma()*v, v);
-	}
 	if(v!=0 || w != 0)
 	{
+		v = randomGaussianNoise(r.getMoveVelSigma()*v, v);
 		w = randomGaussianNoise(r.getMoveRotVelSigma()*w, w);
 	}
+	
 	p2dProxy.SetSpeed(v, w);
 }
 
@@ -109,11 +109,11 @@ vector<wallsFound> interpretMeasurements()
 			returnedCorner = findCorner(lines);
 			corner = returnedCorner.second;
 			
-/*			if(returnedCorner.first == 1)
-				LOG(LEVEL_WARN) << "Open Corner Found";
+			if(returnedCorner.first == 1)
+				LOG(LEVEL_ERROR) << "Open Corner Found";
 			else
-				LOG(LEVEL_WARN) << "Closed Corner Found";
-			
+				LOG(LEVEL_ERROR) << "Closed Corner Found";
+/*			
 			LOG(LEVEL_INFO) << "Corner X = " << corner.x;
 			LOG(LEVEL_INFO) << "Corner Y = " << corner.y;
 */		}
@@ -200,7 +200,7 @@ vector<wallsFound> findLine()
 pair<bool, point> findCorner(vector<wallsFound> lines)
 {
 	double a, b, c, d;
-	double theta, valid;
+	double theta, valid1, valid2;
 	point corner;
 	
 	//parameters of both lines
@@ -213,14 +213,15 @@ pair<bool, point> findCorner(vector<wallsFound> lines)
 	corner.y = (d-b)/(a-c);
 	corner.x = -(a*corner.y + b);
 	
-	theta = int(rtod(atan2(corner.y, corner.x)));
+	theta = int(rtod(atan2(corner.y, corner.x))) + 90;
 	if(theta < 0)
 	{
 		theta += 360;
 	}
 	
-	valid = r.getIfValidLaserReading(theta+45);
-	if (valid == -1)
+	valid1 = r.getIfValidLaserReading((theta+45)%360);
+	valid2 = r.getIfValidLaserReading((theta-45)%360);
+	if (valid1 == -1 && valid2 == -1)
 	{
 		return make_pair(1, corner);
 		
@@ -276,6 +277,10 @@ void updateLandmarkState(point landmark)
 	double landmarkX = sin(r.getTh())*landmark.x + cos(r.getTh())*landmark.y + r.getX();
 	double landmarkY = -cos(r.getTh())*landmark.x + sin(r.getTh())*landmark.y + r.getY();
 	
+	LOG(LEVEL_INFO) << "Landmark X = " << landmarkX;
+	LOG(LEVEL_INFO) << "Landmark Y = " << landmarkY;
+	
+	
 	mat muBar = createMu();
 	mat sigmaBar = r.getSigma();
 		
@@ -283,7 +288,7 @@ void updateLandmarkState(point landmark)
 	mat Q = createQtLandmark();
 	mat Z = createZtLandmark(landmarkX, landmarkY);
 		
-	mat K = sigmaBar*C.t()*(C*sigmaBar*C.t() + Q).i();
+	mat K = sigmaBar*trans(C)*pinv((C*sigmaBar*trans(C) + Q));
 	muBar = muBar + K*(Z-C*muBar);
 	sigmaBar = (eye<mat>(7,7)-K*C)*sigmaBar;
 		
@@ -318,7 +323,7 @@ mat predictiCov(mat A)
 {
 	mat R = createRt();
 	mat sigma = r.getSigma();
-	mat sigmaBar = A * sigma * A.t() + R;
+	mat sigmaBar = A * sigma * trans(A) + R;
 	
 	return sigmaBar;
 }
@@ -437,10 +442,13 @@ mat createQt()
 mat createQtLandmark()
 {
 	mat Q = zeros<mat>(2,2);
+	double xSigma = r.getSigma()(0,0);
+	double ySigma = r.getSigma()(1,1);
+	double thetaSigma = r.getSigma()(2,2);
 	
 	//Covariance of measurements
-	Q(0, 0) = 0.01;
-	Q(1, 1) = 0.01;
+	Q(0, 0) = 0.01 + xSigma + thetaSigma;
+	Q(1, 1) = 0.01 + ySigma + thetaSigma;
 	
 	return Q;
 }
@@ -505,7 +513,7 @@ void kalmanFilter(vector<wallsFound> lines)
 			mat Q = createQt();
 			mat Z = createZt(robotX, robotY, robotTheta);
 			
-			mat K = sigmaBar*C.t()*(C*sigmaBar*C.t() + Q).i();
+			mat K = sigmaBar*trans(C)*pinv(C*sigmaBar*trans(C) + Q);
 			muBar = muBar + K*(Z-C*muBar);
 			sigmaBar = (eye<mat>(7,7)-K*C)*sigmaBar;
 			
@@ -538,7 +546,7 @@ void kalmanFilter(vector<wallsFound> lines)
 void strategy(vector<wallsFound> lines)
 {
 	int strategy_state = r.getStrategy();
-	bool wallFound = 0;
+	static bool wallFound = false, twoWalls = false;
 	
 	switch(strategy_state)
 	{
@@ -546,58 +554,77 @@ void strategy(vector<wallsFound> lines)
 			
 //			bool detectObject = interpretMeasurements();
 			vector<wallsFound> lines = findLine();
-
 			
 			if(lines.size() >= 1)
 			{
+				if(lines.size() > 1 && wallFound && !twoWalls)
+				{
+					wallFound = false;
+					twoWalls = true;
+				}
+				if (twoWalls && wallFound)
+				{
+					twoWalls = false;
+				}
 				vector<wallsFound> lines = findLine();
-				followWall(lines);
-				wallFound = 1;
+				followWall(lines, wallFound);
+				wallFound = true;
 
 			}
 			else
 			{
 				r.setVel(0.3);
 				r.setRotVel(0);
-				if(wallFound == 1)
+				if(wallFound == true)
 				{
 					r.setRotVel(-0.3);
 				}
 			}
+			
 		break;
 	}
 }
 
-void followWall(vector<wallsFound> lines)
+void followWall(vector<wallsFound> lines, int wallFound)
 {
 	//double rotation;
 	int i = 0;
+	
 	double param = 0.1;
 	double param2 = 5;
+	
 	double rotVel;
+	
 	static double CTE;
 	double diffCTE;
+	double theta1, theta2;
+	
 	int line = 1.5;
+	
 	if(lines.size() == 2)
 	{
-		LOG(LEVEL_WARN) << "Two fucking lines." << endl << "Angle 0 = " << lines[0].angle << endl << "Angle 1 = " << lines[1].angle;
-		if (lines[0].angle - lines[1].angle > 0)
+		
+		theta2 = lines.at(0).angle;
+		theta1 = lines.at(1).angle;
+		
+		if(((theta1 - theta2) > 0 && (theta1 - theta2) < M_PI) || (theta1 - theta2) < -M_PI)
 		{
 			i = 1;
-			line = 2.0;
+			line = 1.50;
 		}
+		
+		
+	}
+	
+	if(!wallFound)
+	{
+		CTE = lines[i].distance - line;
 	}
 	
 	diffCTE = lines[i].distance - line - CTE;
 	CTE = lines[i].distance - line;
 	r.setVel(0.2);
 	rotVel = -param*CTE - param2*diffCTE;
-	LOG(LEVEL_WARN) << "Distance = " << lines[i].distance - 1.5;
-	LOG(LEVEL_WARN) << "Angle 0 = " << lines[0].angle*(360/(2*M_PI));
-	LOG(LEVEL_WARN) << "rotVel = " << rotVel*(360/(2*M_PI));
-	LOG(LEVEL_WARN) << "CTE = " << CTE;
-	LOG(LEVEL_WARN) << "diffCTE = " << diffCTE << endl;
-
 	r.setRotVel(rotVel);
 	
 	return;
@@ -742,7 +769,7 @@ vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions
 		differentThanAll = 1;
 		for (j=0; j<differentCosMeans.size(); j++)
 		{
-			if (300 > abs(differentCosMeans.at(j) - cosMeans.at(k)) || 700 < abs(differentCosMeans.at(j) - cosMeans.at(k)))
+			if (200 > abs(differentCosMeans.at(j) - cosMeans.at(k)) || 800 < abs(differentCosMeans.at(j) - cosMeans.at(k)))
 			{
 				//adding new information to existing groups of lines
 				differentThanAll = 0;

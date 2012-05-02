@@ -15,6 +15,8 @@ using namespace std;
 using namespace PlayerCc;
 using namespace arma;
 
+typedef struct point_t point;
+
 struct walls_found
 {
 	double distance;
@@ -58,6 +60,6 @@ vector<wallsFound> getLines(vector<double> cosMeans, vector<double> getPositions
 pair<int, int> findLandmarkClusterOfMeasures(vector<int> validLaserMeasurements, vector<double> laserMeasurements);
 
 void strategy(vector<wallsFound> lines);
-void followWall(vector<wallsFound> lines);
+void followWall(vector<wallsFound> lines, int wallFound);
 
 #endif

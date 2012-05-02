@@ -31,7 +31,7 @@ class Robot
 		double getLandmarkY();
 		double getVel();
 		double getRotVel();
-		int    getStrategy();
+		int getStrategy();
 		
 		double getMoveVelSigma();
 		double getMoveRotVelSigma();
@@ -53,6 +53,7 @@ class Robot
         
 		void printInfo();
 		void printInfoComparison();
+		void printSigmaComparison();
 		
 		//Measurements
 		vector<double> getLaserReadings();
