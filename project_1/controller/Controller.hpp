@@ -62,4 +62,7 @@ pair<int, int> findLandmarkClusterOfMeasures(vector<int> validLaserMeasurements,
 void strategy(vector<wallsFound> lines);
 void followWall(vector<wallsFound> lines, int wallFound);
 
+
+long long int timeval_diff(struct timeval *difference, struct timeval *end_time, struct timeval *start_time);
+
 #endif
