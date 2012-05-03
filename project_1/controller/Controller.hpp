@@ -33,7 +33,7 @@ vector<wallsFound> sense();
 mat predictMean();
 mat predictionCov(mat A);
 mat createAt();
-mat createBt();
+mat createBt(double deltaT);
 mat createCt();
 mat createCtLandmark();
 mat createUt();

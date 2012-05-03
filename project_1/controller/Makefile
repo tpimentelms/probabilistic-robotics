@@ -16,7 +16,7 @@ INC = -I. -I../shared
 all: $(SOURCES) $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
-	$(CXX) $(CPPFLAGS) $(INC) $(SHARED_OBJ) $(BOOST_LIBS) $(PLAYER_LIBS) $(ARMA_LIBS) -llapack -lblas -lcurses $^ -o $@
+	$(CXX) $(CPPFLAGS) $(INC) $(SHARED_OBJ) $(BOOST_LIBS) $(PLAYER_LIBS) $(ARMA_LIBS) $^ -o $@
 
 .cpp.o:
 	$(CXX) $(CPPFLAGS) $(INC) $(PLAYER_LIBS) -c -g $< -o $@

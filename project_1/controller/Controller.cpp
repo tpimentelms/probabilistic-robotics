@@ -34,6 +34,7 @@ int main()
 		kalmanFilter(lines);
 		
 		strategy(lines);
+	
 	}
 	
 	return 0;
@@ -41,6 +42,12 @@ int main()
 
 void move(double v, double w)
 {
+	if(w>M_PI_4)
+		w=M_PI_4;
+		
+	v=0;
+	w=0.5;
+	
 	r.setVel(v);
 	r.setRotVel(w);
 	
@@ -200,7 +207,9 @@ vector<wallsFound> findLine()
 pair<bool, point> findCorner(vector<wallsFound> lines)
 {
 	double a, b, c, d;
-	double theta, valid1, valid2;
+	int theta;
+	double valid1, valid2;
+	double valid3, valid4;
 	point corner;
 	
 	//parameters of both lines
@@ -219,9 +228,11 @@ pair<bool, point> findCorner(vector<wallsFound> lines)
 		theta += 360;
 	}
 	
-	valid1 = r.getIfValidLaserReading((theta+45)%360);
-	valid2 = r.getIfValidLaserReading((theta-45)%360);
-	if (valid1 == -1 && valid2 == -1)
+	valid1 = r.getIfValidLaserReading((theta+60)%360);
+	valid2 = r.getIfValidLaserReading((theta-60+360)%360);
+	valid4 = r.getIfValidLaserReading((theta+90)%360);
+	valid3 = r.getIfValidLaserReading((theta-90+360)%360);
+	if ((valid1 == -1 && valid3 == -1) || (valid2 == -1 && valid4 == -1))
 	{
 		return make_pair(1, corner);
 		
@@ -283,15 +294,15 @@ void updateLandmarkState(point landmark)
 	
 	mat muBar = createMu();
 	mat sigmaBar = r.getSigma();
-		
+	
 	mat C = createCtLandmark();
 	mat Q = createQtLandmark();
 	mat Z = createZtLandmark(landmarkX, landmarkY);
-		
-	mat K = sigmaBar*trans(C)*pinv((C*sigmaBar*trans(C) + Q));
+	
+	mat K = sigmaBar*C.t()*(C*sigmaBar*C.t() + Q).i();
 	muBar = muBar + K*(Z-C*muBar);
 	sigmaBar = (eye<mat>(7,7)-K*C)*sigmaBar;
-		
+	
 	r.updateState(muBar);
 	r.updateSigma(sigmaBar);
 }
@@ -339,13 +350,13 @@ mat createAt()
 	return A;
 }
 
-mat createBt()
+mat createBt(double deltaT)
 {
 	mat B = zeros<mat>(7,2);
 	
 	//Velocity parameters
-	B(0, 0) = cos(r.getTh());
-	B(1, 0) = sin(r.getTh());
+	B(0, 0) = cos(r.getTh())*deltaT;
+	B(1, 0) = sin(r.getTh())*deltaT;
 	B(2, 0) = 0;
 	B(3, 0) = 1;
 	B(4, 0) = 0;
@@ -355,7 +366,7 @@ mat createBt()
 	//Rotation parameters
 	B(0, 1) = 0;
 	B(1, 1) = 0;
-	B(2, 1) = 1;
+	B(2, 1) = 1*deltaT;
 	B(3, 1) = 0;
 	B(4, 1) = 1;
 	B(5, 1) = 0;
@@ -480,9 +491,10 @@ mat createZtLandmark(double landmarkX, double landmarkY)
 void kalmanFilter(vector<wallsFound> lines)
 {
 	double theta1, theta2, robotX, robotY, robotTheta;
+	double deltaT = 1.25;
 	
 	mat A = createAt();
-	mat B = createBt();
+	mat B = createBt(deltaT);
 	mat muBar = predictMean(A, B);
 	mat sigmaBar = predictiCov(A);
 	r.updateSigma(sigmaBar);
@@ -501,19 +513,19 @@ void kalmanFilter(vector<wallsFound> lines)
 			{
 				robotX = lines.at(0).distance;
 				robotY = -lines.at(1).distance;
-				robotTheta = dtor(int(rtod(5*M_PI/2 - theta2)) % 360);
+				robotTheta = dtor(int(rtod(5*M_PI/2 - theta2)) % 360 + 25);
 			}
 			else
 			{
 				robotY = -lines.at(0).distance;
 				robotX = lines.at(1).distance;
-				robotTheta = dtor(int(rtod(5*M_PI/2 - theta1)) % 360);
+				robotTheta = dtor(int(rtod(5*M_PI/2 - theta1)) % 360 + 25);
 			}
 			mat C = createCt();
 			mat Q = createQt();
 			mat Z = createZt(robotX, robotY, robotTheta);
 			
-			mat K = sigmaBar*trans(C)*pinv(C*sigmaBar*trans(C) + Q);
+			mat K = sigmaBar*C.t()*(C*sigmaBar*C.t() + Q).i();
 			muBar = muBar + K*(Z-C*muBar);
 			sigmaBar = (eye<mat>(7,7)-K*C)*sigmaBar;
 			
@@ -603,9 +615,16 @@ void followWall(vector<wallsFound> lines, int wallFound)
 	
 	if(lines.size() == 2)
 	{
-		
-		theta2 = lines.at(0).angle;
-		theta1 = lines.at(1).angle;
+		if(findCorner(lines).first)
+		{
+			theta1 = lines.at(0).angle;
+			theta2 = lines.at(1).angle;
+		}
+		else
+		{
+			theta2 = lines.at(0).angle;
+			theta1 = lines.at(1).angle;
+		}
 		
 		if(((theta1 - theta2) > 0 && (theta1 - theta2) < M_PI) || (theta1 - theta2) < -M_PI)
 		{

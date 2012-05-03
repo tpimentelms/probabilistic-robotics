@@ -151,13 +151,13 @@ void Robot::printInfo()
 void Robot::printInfoComparison()
 {
 	LOG(LEVEL_WARN) << "Robot comparison info";
-	LOG(LEVEL_INFO) << "X = " << this->getX() << "\t True X = " << p2dProxy.GetXPos() + 5 << "\t Delta X = " << this->getX()-p2dProxy.GetXPos() + 5;
-	LOG(LEVEL_INFO) << "Y = " << this->getY() << "\t True Y = " << p2dProxy.GetYPos() - 3 << "\t Delta Y = " << this->getY()-p2dProxy.GetYPos() - 3;
+	LOG(LEVEL_INFO) << "X = " << this->getX() << "\t True X = " << p2dProxy.GetXPos() + 7.7 << "\t Delta X = " << this->getX()-p2dProxy.GetXPos() - 7.7;
+	LOG(LEVEL_INFO) << "Y = " << this->getY() << "\t True Y = " << p2dProxy.GetYPos() - 4.6 << "\t Delta Y = " << this->getY()-p2dProxy.GetYPos() + 4.6;
 	LOG(LEVEL_INFO) << "Th = " << rtod(this->getTh()) << "\t True Th = " << rtod(p2dProxy.GetYaw()) << "\t Delta Th = " << rtod(this->getTh()-p2dProxy.GetYaw());
 	LOG(LEVEL_INFO) << "Vel = " << this->getVel() << "\t True Vel = " << p2dProxy.GetXSpeed() << "\t Delta Vel = " << this->getVel()-p2dProxy.GetXSpeed();
 	LOG(LEVEL_INFO) << "RotVel = " << this->getRotVel() << " True RotVel = " << p2dProxy.GetYawSpeed() << "\t Delta RotVel = " << this->getRotVel()-p2dProxy.GetYawSpeed();
-	LOG(LEVEL_INFO) << "Landmark X = " << this->getLandmarkX() << " True Landmark X = " << -3.8 << "\t Delta Landmark X = " << this->getLandmarkX()-3.5;
-	LOG(LEVEL_INFO) << "Landmark Y = " << this->getLandmarkY() << " True Landmark Y = " << -3.5 << "\t Delta Landmark Y = " << this->getLandmarkY()+5;
+	LOG(LEVEL_INFO) << "Landmark X = " << this->getLandmarkX() << " True Landmark X = " << -2 << "\t Delta Landmark X = " << this->getLandmarkX()-2.5;
+	LOG(LEVEL_INFO) << "Landmark Y = " << this->getLandmarkY() << " True Landmark Y = " << -5 << "\t Delta Landmark Y = " << this->getLandmarkY()-5;
 }
 
 void Robot::printSigmaComparison()
@@ -219,9 +219,9 @@ double Robot::getIfValidLaserReading(unsigned int value)
 	if (this->laserReadings.size() < value)
 	{
 		LOG(LEVEL_ERROR) << "Laser info";
-		LOG(LEVEL_ERROR) << "Trying to access invalid laser data.";
+		LOG(LEVEL_ERROR) << "Trying to access invalid laser data. Value = " << value;
 		
-		return -1;
+		return 0;
 	}
 	
 	if(laserReadings.at(value) > 3.7)
