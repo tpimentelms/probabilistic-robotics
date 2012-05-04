@@ -31,7 +31,7 @@ void move(double newV, double newW);
 vector<wallsFound> sense();
 
 mat predictMean();
-mat predictionCov(mat A);
+mat predictCov(mat A);
 mat createAt();
 mat createBt(double deltaT);
 mat createCt();

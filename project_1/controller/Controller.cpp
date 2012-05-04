@@ -18,22 +18,21 @@ int main()
     while(true)
     {
 		//r.updateState();
-		
-		r.printInfoComparison();
-		r.printSigmaComparison();
         
         /*
          * TODO: remove this setVel and setRotVel!
          * experimental circle, just to see if everything is OK.
          */
-        
+        lines = sense();
+         
+   		//strategy(lines);
+
 		move(r.getVel(), r.getRotVel());
-		
-		lines = sense();
 
 		kalmanFilter(lines);
 		
-		strategy(lines);
+		r.printInfoComparison();
+		r.printSigmaComparison();
 	
 	}
 	
@@ -44,7 +43,7 @@ void move(double v, double w)
 {
 	if(w>M_PI_4)
 		w=M_PI_4;
-		
+	
 	r.setVel(v);
 	r.setRotVel(w);
 	
@@ -53,8 +52,10 @@ void move(double v, double w)
 		v = randomGaussianNoise(r.getMoveVelSigma()*v, v);
 		w = randomGaussianNoise(r.getMoveRotVelSigma()*w, w);
 	}
-	
-	p2dProxy.SetSpeed(v, w);
+	w = 0.1;
+	r.setRotVel(w);
+
+	p2dProxy.SetSpeed(0, w);
 }
 
 vector<wallsFound> sense()
@@ -309,6 +310,7 @@ mat predictMean(mat A, mat B)
 	mat ut = createUt();
 	mat mu = createMu();
 	mat muBar = A*mu + B*ut;
+	LOG(LEVEL_WARN) << "muBar(2,0) = " << muBar(2,0)*(360/(2*M_PI));
 	
 	
 	
@@ -327,7 +329,7 @@ mat predictMean(mat A, mat B)
     return muBar;
 }
 
-mat predictiCov(mat A)
+mat predictCov(mat A)
 {
 	mat R = createRt();
 	mat sigma = r.getSigma();
@@ -498,16 +500,17 @@ void kalmanFilter(vector<wallsFound> lines)
 	else
 		deltaT = double(timeval_diff(NULL,&later,&earlier))/1000000;
 	
-	
+	//deltaT = 1;
 	LOG(LEVEL_WARN) << "Time found = " << deltaT;
 	
-	gettimeofday(&earlier,NULL);
+	
 	
 	mat A = createAt();
 	mat B = createBt(deltaT);
 	mat muBar = predictMean(A, B);
-	mat sigmaBar = predictiCov(A);
+	mat sigmaBar = predictCov(A);
 	r.updateSigma(sigmaBar);
+	
 	
 	if(lines.size() == 2)
 	{
@@ -552,7 +555,7 @@ void kalmanFilter(vector<wallsFound> lines)
 			
 		}
 	}
-	
+	gettimeofday(&earlier,NULL);
 	r.updateState(muBar);
 	r.updateSigma(sigmaBar);
 	

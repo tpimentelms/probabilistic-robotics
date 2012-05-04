@@ -83,6 +83,16 @@ void Robot::setY(double y)
 
 void Robot::setTh(double th)
 {
+	while(th > 2*M_PI)
+	{
+		th = th - 2*M_PI;
+		LOG(LEVEL_WARN) << "Bigger than PI";
+	}
+	while(th < -2*M_PI)
+	{
+		th = th + 2*M_PI;
+	}
+	LOG(LEVEL_WARN) << "SetTh";
 	this->th = th;
 }
 
