@@ -10,6 +10,8 @@
 using namespace std;
 using namespace arma;
 
+#define PARTICLES_SIZE 500
+
 struct particle_t
 {
     double x, y, th;
@@ -24,6 +26,9 @@ class Particles
 		
 		void printParticlesPositions();
 		void printParticlesPositionsMeans();
+		
+		vector<particle> getParticles();
+		void setParticles(vector<particle> newParticles);
 		
 	private:
 		vector<particle> particleArray;

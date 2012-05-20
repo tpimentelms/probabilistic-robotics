@@ -128,6 +128,16 @@ void Robot::setStrategy(int strategy)
 	this->strategy = strategy;
 }
 
+vector<particle> Robot::getParticles()
+{
+	return this->robotParticles.getParticles();
+}
+
+void Robot::setParticles(vector<particle> newParticles)
+{
+	this->robotParticles.setParticles(newParticles);
+}
+
 void Robot::updateReadings()
 {
     // read current state from player client

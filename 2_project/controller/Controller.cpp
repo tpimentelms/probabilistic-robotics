@@ -32,9 +32,9 @@ int main()
 		
 		lines = sense();
 
-		//particleFilter(); //add particle filter
+		particleFilter(lines); //add particle filter
 		
-		//strategy(lines);
+		strategy(lines);//checked, still working
 	}
 	
 	return 0;
@@ -626,4 +626,121 @@ long long int timeval_diff(struct timeval *difference, struct timeval *end_time,
 
   return 1000000LL*difference->tv_sec+
                    difference->tv_usec;
+}
+
+void particleFilter(vector<wallsFound> lines)
+{
+	vector<particle> robotParticles;
+	robotParticles = r.getParticles();
+	robotParticles = predictParticles(robotParticles);
+	updateParticles(lines, robotParticles);
+}
+
+
+vector<particle> predictParticles(vector<particle> robotParticles)
+{
+	static struct timeval earlier;
+	struct timeval later;
+	double deltaT;
+	
+	gettimeofday(&later,NULL);
+	if (earlier.tv_usec == 0 && earlier.tv_sec == 0)
+		deltaT = 1;
+	else
+		deltaT = double(timeval_diff(NULL,&later,&earlier))/1000000;
+	
+	//deltaT = 1;
+	LOG(LEVEL_WARN) << "Time between steps";
+	LOG(LEVEL_INFO) << "Time found = " << deltaT;
+	
+	gettimeofday(&earlier,NULL);
+	
+	vector<particle> predicted(PARTICLES_SIZE);
+	unsigned int counter;
+	
+	for(counter=0; counter<robotParticles.size(); counter++)
+	{
+		predicted[counter] = movementPrediction(robotParticles.at(counter), deltaT);
+	}
+	
+	return predicted;
+}
+
+void updateParticles(vector<wallsFound> lines, vector<particle> robotParticles)
+{
+	point corner;
+	point landmark;
+	pair<bool, point> returnedCorner;
+	pair<bool, point> returnedLandmark;
+	
+	returnedLandmark = findLandmark();//make_pair(0, landmark);
+	
+	//checks if something was found
+	if (lines.size() || returnedLandmark.first)
+	{
+		//found only a line
+		if (lines.size() == 1)
+		{
+/*			LOG(LEVEL_WARN) << "Line found";
+			LOG(LEVEL_INFO) << "Distance = " << lines.at(0).distance;
+			LOG(LEVEL_INFO) << "Theta = " << lines.at(0).angle;
+*/		}
+		//landmark found
+		if (returnedLandmark.first)
+		{
+			landmark = returnedLandmark.second;
+			updateLandmarkState(landmark);
+/*			LOG(LEVEL_WARN) << "Landmark Found";
+			LOG(LEVEL_INFO) << "Landmark X = " << landmark.x;
+			LOG(LEVEL_INFO) << "Landmark Y = " << landmark.y;
+*/		}
+		//found a corner
+		if (lines.size() == 2)
+		{
+			returnedCorner = findCorner(lines);
+			corner = returnedCorner.second;
+/*			
+			if(returnedCorner.first == 1)
+				LOG(LEVEL_ERROR) << "Open Corner Found";
+			else
+				LOG(LEVEL_ERROR) << "Closed Corner Found";
+			
+			LOG(LEVEL_INFO) << "Corner X = " << corner.x;
+			LOG(LEVEL_INFO) << "Corner Y = " << corner.y;
+*/		}
+	}
+	
+	r.setParticles(robotParticles);
+}
+
+particle movementPrediction(particle particlePosition, double deltaT)
+{
+	double x = particlePosition.x;
+	double y = particlePosition.y;
+	double th = particlePosition.th;
+	double v = r.getVel();
+	double w = r.getRotVel();
+	double deltaX, deltaY, deltaTh;
+	
+	v = randomGaussianNoise(r.getMoveVelSigma()*v, v);
+	w = randomGaussianNoise(r.getMoveRotVelSigma()*w, w);
+	
+	if(w != 0)
+	{
+		deltaTh = w*deltaT;
+		deltaX = -v/w*sin(th) + v/w*sin(th + w*deltaT);
+		deltaY = v/w*cos(th) - v/w*cos(th + w*deltaT);
+	}
+	else
+	{
+		deltaTh = 0;
+		deltaX = v*cos(th);
+		deltaY = v*sin(th);
+	}
+	
+	particlePosition.x = x + deltaX;
+	particlePosition.y = y + deltaY;
+	particlePosition.th = th + deltaTh;
+	
+	return particlePosition;
 }

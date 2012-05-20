@@ -3,6 +3,7 @@
 
 #include <Robot.hpp>
 #include <Landmark.hpp>
+#include <Particles.hpp>
 #include <Map.hpp>
 #include <ProcessLogger.h>
 
@@ -31,22 +32,12 @@ void move(double newV, double newW);
 
 vector<wallsFound> sense();
 
-mat predictMean();
-mat predictCov(mat A);
-mat createAt();
-mat createBt(double deltaT);
-mat createCt();
-mat createCtLandmark();
-mat createUt();
-mat createMu();
-mat createRt();
-mat createQt();
-mat createQtLandmark();
-mat createZt(double robotX, double robotY, double robotTheta);
-mat createZtLandmark(double landmarkX, double landmarkY);
 void updateLandmarkState(point landmark);
 
-void kalmanFilter(vector<wallsFound> lines);
+void particleFilter(vector<wallsFound> lines);
+vector<particle> predictParticles(vector<particle> robotParticles);
+void updateParticles(vector<wallsFound> lines, vector<particle> robotParticles);
+particle movementPrediction(particle particlePosition, double deltaT);
 
 vector<wallsFound> interpretMeasurements();
 vector<wallsFound> findLine();

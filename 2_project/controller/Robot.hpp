@@ -3,12 +3,12 @@
 
 #include <Controller.hpp>
 #include <ProcessLogger.h>
+#include <Map.hpp>
+#include <Particles.hpp>
 
 #include <libplayerc++/playerc++.h>
 #include <vector>
 #include <armadillo>
-#include <Map.hpp>
-#include <Particles.hpp>
 
 using namespace std;
 using namespace PlayerCc;
@@ -49,6 +49,9 @@ class Robot
 		void setRotVel(double w);
 		void setPose(double x, double y, double th);
 		void setStrategy(int strategy);
+		
+		vector<particle> getParticles();
+		void setParticles(vector<particle> newParticles);
 		
 		void updateReadings();
         void updateState(mat newMu);

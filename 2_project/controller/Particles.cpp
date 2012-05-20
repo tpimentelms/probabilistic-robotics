@@ -10,7 +10,7 @@ Particles::Particles()
 	}
 	
 	unsigned int counter;
-	this->particleArray.resize(500);
+	this->particleArray.resize(PARTICLES_SIZE);
 	particle startingParticle;
 	
 	for (counter = 0; counter < this->particleArray.size(); counter++)
@@ -24,6 +24,16 @@ Particles::Particles()
 
 Particles::~Particles()
 {
+}
+
+vector<particle> Particles::getParticles()
+{
+	return this->particleArray;
+}
+
+void Particles::setParticles(vector<particle> newParticles)
+{
+	this->particleArray = newParticles;
 }
 
 void Particles::printParticlesPositions()
