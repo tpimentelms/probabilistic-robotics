@@ -18,7 +18,7 @@ window
 # load an environment bitmap
 floorplan
 (
-	bitmap "project1_map2.png"
+	bitmap "project1_map.png"
 	size [25 25 1.5]
 	laser_return 1
 )
@@ -45,7 +45,7 @@ pioneer2dx
   odom_error [0.01 0.05 0.01 0.02 0.01 0.02] 
 )
 
-define carton model
+define cartonOrange model
 (
 	# a carton is retangular
 	# so make a square shape and use size[]
@@ -59,13 +59,34 @@ define carton model
 	z [0 1]
 	)
 	# average litre carton size is ~ 20cm x 10cm x 5cm
-	size [0.1 0.2 0.2]
+	size [1 2 0.5]
 	color "orange"
 	blob_return 1
     laser_return 1
 )
 
-carton(name "carton1" pose [1 0.5 0 0])
-carton(name "carton1" pose [0.5 1 0 0])
+define cartonDarkBlue model
+(
+	# a carton is retangular
+	# so make a square shape and use size[]
+	block
+	(
+	points 4
+	point[0] [1 0]
+	point[1] [1 1]
+	point[2] [0 1]
+	point[3] [0 0]
+	z [0 1]
+	)
+	# average litre carton size is ~ 20cm x 10cm x 5cm
+	size [1 2 0.5]
+	color "DarkBlue"
+	blob_return 1
+    laser_return 1
+)
+
+
+cartonOrange(name "cartonOrange" pose [-8 2 0 90])
+cartonDarkBlue(name "cartonDarkBlue" pose [0 -10 0 90])
 
 
