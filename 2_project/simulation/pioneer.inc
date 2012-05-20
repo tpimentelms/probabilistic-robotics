@@ -4,6 +4,21 @@
 # Date: 10 Jun 2002
 # CVS: $Id: pioneer.inc,v 1.30 2008-01-15 01:25:42 rtv Exp $
 
+define pioneer_eyes blobfinder
+(
+	# number of colours to look for
+	colors_count 2
+
+	# which colours to look for
+	colors ["orange" "DarkBlue"]
+
+	# camera parameters
+	image [16 12] #resolution
+	range 2
+	fov 60 # 60 degrees = pi/3 radians
+)
+
+
 # The Pioneer2DX sonar array
 define p2dx_sonar ranger
 (

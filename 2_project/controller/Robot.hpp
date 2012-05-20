@@ -17,6 +17,7 @@ using namespace arma;
 extern PlayerClient playerRobot;
 extern Position2dProxy p2dProxy;
 extern LaserProxy laserProxy;
+extern BlobfinderProxy blobProxy;
 
 class Robot
 {
