@@ -1,0 +1,47 @@
+# Authors: Guilherme Anselmo
+#          Matheus V. Portela
+#          Tiago Pimentel
+# Date: 17 Apr 2012
+
+include "map.inc"
+include "pioneer.inc"
+include "sick.inc"
+
+# configure the GUI window
+window
+(
+	size [ 700.000 700.000 ]
+	scale 35
+	show_data 1
+)
+
+# load an environment bitmap
+floorplan
+(
+	bitmap "project1_map.png"
+	size [25 25 1.5]
+	laser_return 1
+)
+
+# set pioneer robot features
+pioneer2dx
+(		  
+  # can refer to the robot by this name
+  name "r0"
+  pose [ 8 4 0 45 ] 
+
+  sicklaser(
+      # laser noise generator
+      ctrl "lasernoise"
+  )
+
+  # report position in world coordinates with gaussian error
+  localization "odom"
+  # start at (0, 0, 0)
+  localization_origin [ 0 0 0 0 ]
+  # gaussian error for odometry
+  # parameters:
+  # odom_error [x xstd y ystd theta thetastd]
+  odom_error [0.01 0.05 0.01 0.02 0.01 0.02] 
+)
+
