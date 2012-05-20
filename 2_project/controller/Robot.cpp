@@ -128,12 +128,15 @@ void Robot::setStrategy(int strategy)
 	this->strategy = strategy;
 }
 
-void Robot::updateState(mat newMu)
+void Robot::updateReadings()
 {
     // read current state from player client
     playerRobot.Read();
-    
-    // cant use gps, this is wrong
+}
+
+void Robot::updateState(mat newMu)
+{
+    // cant use kalman, correct this
 	this->setX(newMu(0,0));
 	this->setY(newMu(1,0));
 	this->setTh(newMu(2,0));

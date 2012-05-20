@@ -19,23 +19,18 @@ int main()
     while(true)
     {
 		//r.updateState();
+		r.updateReadings();
 		
 		r.printInfoComparison();
 		r.printSigmaComparison();
-        
-        /*
-         * TODO: remove this setVel and setRotVel!
-         * experimental circle, just to see if everything is OK.
-         */
         
 		move(r.getVel(), r.getRotVel());
 		
 		lines = sense();
 
-		kalmanFilter(lines);
+		//particleFilter(); //add particle filter
 		
 		//strategy(lines);
-	
 	}
 	
 	return 0;
@@ -63,7 +58,7 @@ vector<wallsFound> sense()
 	vector<wallsFound> lines;
 	
 	r.updateLaserReadings();
-	//r.printLaserReadings();
+	r.printLaserReadings();
 	//r.printValidLaserReadings();
     
     /*
@@ -95,10 +90,10 @@ vector<wallsFound> interpretMeasurements()
 		//found only a line
 		if (lines.size() == 1)
 		{
-/*			LOG(LEVEL_WARN) << "Line found";
+			LOG(LEVEL_WARN) << "Line found";
 			LOG(LEVEL_INFO) << "Distance = " << lines.at(0).distance;
 			LOG(LEVEL_INFO) << "Theta = " << lines.at(0).angle;
-*/		}
+		}
 		//landmark found
 		if (returnedLandmark.first)
 		{
@@ -113,12 +108,12 @@ vector<wallsFound> interpretMeasurements()
 		{
 			returnedCorner = findCorner(lines);
 			corner = returnedCorner.second;
-			
+/*			
 			if(returnedCorner.first == 1)
 				LOG(LEVEL_ERROR) << "Open Corner Found";
 			else
 				LOG(LEVEL_ERROR) << "Closed Corner Found";
-/*			
+			
 			LOG(LEVEL_INFO) << "Corner X = " << corner.x;
 			LOG(LEVEL_INFO) << "Corner Y = " << corner.y;
 */		}
@@ -289,271 +284,7 @@ void updateLandmarkState(point landmark)
 	LOG(LEVEL_INFO) << "Landmark X = " << landmarkX;
 	LOG(LEVEL_INFO) << "Landmark Y = " << landmarkY;
 	
-	
-	mat muBar = createMu();
-	mat sigmaBar = r.getSigma();
-	
-	mat C = createCtLandmark();
-	mat Q = createQtLandmark();
-	mat Z = createZtLandmark(landmarkX, landmarkY);
-	
-	mat K = sigmaBar*C.t()*(C*sigmaBar*C.t() + Q).i();
-	muBar = muBar + K*(Z-C*muBar);
-	sigmaBar = (eye<mat>(7,7)-K*C)*sigmaBar;
-	
-	r.updateState(muBar);
-	r.updateSigma(sigmaBar);
-}
-
-mat predictMean(mat A, mat B)
-{
-	mat ut = createUt();
-	mat mu = createMu();
-	mat muBar = A*mu + B*ut;
-	
-	
-	
-   
-    
-    return muBar;
-}
-
-mat predictCov(mat A)
-{
-	mat R = createRt();
-	mat sigma = r.getSigma();
-	mat sigmaBar = A * sigma * trans(A) + R;
-	
-	return sigmaBar;
-}
-
-
-mat createAt()
-{
-	mat A = eye<mat>(7,7);
-	
-	A(3, 3) = 0;
-	A(4, 4) = 0;
-	
-	return A;
-}
-
-mat createBt(double deltaT)
-{
-	mat B = zeros<mat>(7,2);
-	
-	//Velocity parameters
-	B(0, 0) = cos(r.getTh())*deltaT;
-	B(1, 0) = sin(r.getTh())*deltaT;
-	B(2, 0) = 0;
-	B(3, 0) = 1;
-	B(4, 0) = 0;
-	B(5, 0) = 0;
-	B(6, 0) = 0;
-	
-	//Rotation parameters
-	B(0, 1) = 0;
-	B(1, 1) = 0;
-	B(2, 1) = 1*deltaT;
-	B(3, 1) = 0;
-	B(4, 1) = 1;
-	B(5, 1) = 0;
-	B(6, 1) = 0;
-	
-	return B;
-
-}
-
-mat createCt()
-{
-	mat C = zeros<mat>(3,7);
-	
-	C(0, 0) = 1;
-	C(1, 1) = 1;
-	C(2, 2) = 1;
-	
-	return C;
-}
-
-mat createCtLandmark()
-{
-	mat C = zeros<mat>(2,7);
-	
-	C(0, 5) = 1;
-	C(1, 6) = 1;
-	
-	return C;
-	
-}
-
-mat createUt()
-{
-	mat ut = zeros<mat>(2,1);
-	
-	ut(0,0) = r.getVel();
-	ut(1,0) = r.getRotVel();
-	
-	return ut;
-}
-
-mat createMu()
-{
-	mat mu = zeros<mat>(7,1);
-	
-	mu(0,0) = r.getX();
-	mu(1,0) = r.getY();
-	mu(2,0) = r.getTh();
-	mu(3,0) = r.getVel();
-	mu(4,0) = r.getRotVel();
-	mu(5,0) = r.getLandmarkX();
-	mu(6,0) = r.getLandmarkY();
-	
-	return mu;
-} 
-
-mat createRt()
-{
-	mat R = eye<mat>(7,7);
-	double theta = r.getTh();
-	R(0,0) = r.getMoveVelSigma() * abs(cos(theta));
-	R(1,1) = r.getMoveVelSigma() * abs(sin(theta));
-	R(2,2) = r.getMoveRotVelSigma();
-	R(3,3) = r.getMoveVelSigma();
-	R(4,4) = r.getMoveRotVelSigma();
-	R(5,5) = 0;
-	R(6,6) = 0;
-	
-	return R;
-}
-
-mat createQt()
-{
-	mat Q = zeros<mat>(3,3);
-	
-	//Covariance of measurements
-	Q(0, 0) = 0.2;
-	Q(1, 1) = 0.2;
-	Q(2, 2) = 0.2;
-	
-	return Q;
-}
-
-mat createQtLandmark()
-{
-	mat Q = zeros<mat>(2,2);
-	double xSigma = r.getSigma()(0,0);
-	double ySigma = r.getSigma()(1,1);
-	double thetaSigma = r.getSigma()(2,2);
-	
-	//Covariance of measurements
-	Q(0, 0) = 0.01 + xSigma + thetaSigma;
-	Q(1, 1) = 0.01 + ySigma + thetaSigma;
-	
-	return Q;
-}
-
-mat createZt(double robotX, double robotY, double robotTheta)
-{
-	mat Z = zeros<mat>(3,1);
-	
-	//Measurements
-	Z(0, 0) = robotX;
-	Z(1, 0) = robotY;
-	Z(2, 0) = robotTheta;
-	
-	return Z;
-}
-
-mat createZtLandmark(double landmarkX, double landmarkY)
-{
-	mat Z = zeros<mat>(2,1);
-	
-	//Measurements
-	Z(0, 0) = landmarkX;
-	Z(1, 0) = landmarkY;
-	
-	return Z;
-}
-
-
-void kalmanFilter(vector<wallsFound> lines)
-{
-	static struct timeval earlier;
-	struct timeval later;
-	double theta1, theta2, robotX, robotY, robotTheta;
-	double deltaT;
-	
-	gettimeofday(&later,NULL);
-	if (earlier.tv_usec == 0 && earlier.tv_sec == 0)
-		deltaT = 1;
-	else
-		deltaT = double(timeval_diff(NULL,&later,&earlier))/1000000;
-	
-	//deltaT = 1;
-	LOG(LEVEL_WARN) << "Time found = " << deltaT;
-	
-	gettimeofday(&earlier,NULL);	
-	
-	mat A = createAt();
-	mat B = createBt(deltaT);
-	mat muBar = predictMean(A, B);
-	mat sigmaBar = predictCov(A);
-	r.updateSigma(sigmaBar);
-	
-	if(lines.size() == 2)
-	{
-		pair<bool, point> corner = findCorner(lines);
-		//only does measurement update if seeing the corner. needs something to be oriented from.
-		if (corner.first)
-		{
-			point a = corner.second;
-			theta1 = lines.at(0).angle;
-			theta2 = lines.at(1).angle;
-			
-			if(((theta1 - theta2) > 0 && (theta1 - theta2) < M_PI) || (theta1 - theta2) < -M_PI)
-			{
-				robotX = lines.at(0).distance;
-				robotY = -lines.at(1).distance;
-				robotTheta = dtor(int(rtod(5*M_PI/2 - theta2)) % 360 + 25);
-			}
-			else
-			{
-				robotY = -lines.at(0).distance;
-				robotX = lines.at(1).distance;
-				robotTheta = dtor(int(rtod(5*M_PI/2 - theta1)) % 360 + 25);
-			}
-			mat C = createCt();
-			mat Q = createQt();
-			mat Z = createZt(robotX, robotY, robotTheta);
-			
-			mat K = sigmaBar*C.t()*(C*sigmaBar*C.t() + Q).i();
-			muBar = muBar + K*(Z-C*muBar);
-			sigmaBar = (eye<mat>(7,7)-K*C)*sigmaBar;
-			
-			/*
-			LOG(LEVEL_WARN) << "Open Corner Found";
-			LOG(LEVEL_WARN) << "Theta 2 = " << theta2;
-			LOG(LEVEL_WARN) << "Theta 1 = " << theta1;
-			LOG(LEVEL_WARN) << "Robot Y = " << lines.at(0).distance;
-			LOG(LEVEL_WARN) << "Robot Theta = " << lines.at(1).distance;
-			LOG(LEVEL_WARN) << "Robot X = " << robotX;
-			LOG(LEVEL_WARN) << "Robot Y = " << robotY;
-			LOG(LEVEL_WARN) << "Robot Theta = " << robotTheta << "Real Theta" << p2dProxy.GetYaw();
-			*/
-			
-		}
-	}
-	
-	r.updateState(muBar);
-	r.updateSigma(sigmaBar);
-	
-	//
-	//void postionUpdate(muBar, covBar)
-    /*
-     * TODO: Implement Kalman Filter algorithm.
-     * TODO: Write functions to create each Kalman Filter matrix, such
-     * as At, Bt and Ct, using armadillo.
-     */
+	//Add particle filter
 }
 
 void strategy(vector<wallsFound> lines)
