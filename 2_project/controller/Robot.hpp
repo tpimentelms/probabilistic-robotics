@@ -8,6 +8,7 @@
 #include <vector>
 #include <armadillo>
 #include <Map.hpp>
+#include <Particles.hpp>
 
 using namespace std;
 using namespace PlayerCc;
@@ -55,6 +56,8 @@ class Robot
 		void printInfo();
 		void printInfoComparison();
 		void printSigmaComparison();
+		void printRobotParticles();
+		void printRobotParticlesMeans();
 		
 		//Measurements
 		vector<double> getLaserReadings();
@@ -77,6 +80,7 @@ class Robot
 		vector<int> validLaserReadings;
 		mat Sigma;
 		int strategy;
+		Particles robotParticles;
 		//matrix Xbart, Ut, Xt, At, Bt
 };
 

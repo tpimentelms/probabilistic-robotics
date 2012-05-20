@@ -7,6 +7,8 @@ LaserProxy laserProxy(&playerRobot, 0);
 Map worldMap, robotMap;
 
 Robot r;
+Landmark l;
+
 
 int main()
 {
@@ -22,6 +24,8 @@ int main()
 		
 		r.printInfoComparison();
 		//r.printSigmaComparison();
+		r.printRobotParticlesMeans();
+		l.printLandmarkPosition();
         
 		move(r.getVel(), r.getRotVel());
 		

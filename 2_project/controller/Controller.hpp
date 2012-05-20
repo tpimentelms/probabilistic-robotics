@@ -2,6 +2,7 @@
 #define CONTROLLER_HPP
 
 #include <Robot.hpp>
+#include <Landmark.hpp>
 #include <Map.hpp>
 #include <ProcessLogger.h>
 

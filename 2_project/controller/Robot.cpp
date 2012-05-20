@@ -185,6 +185,16 @@ void Robot::printSigmaComparison()
 	LOG(LEVEL_INFO) << "Landmark Y Sigma = " << this->Sigma(6,6);
 }
 
+void Robot::printRobotParticles()
+{
+	this->robotParticles.printParticlesPositions();
+}
+
+void Robot::printRobotParticlesMeans()
+{
+	this->robotParticles.printParticlesPositionsMeans();
+}
+
 void Robot::updateLaserReadings()
 {
 	unsigned int counter;
