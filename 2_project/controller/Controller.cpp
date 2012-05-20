@@ -3,6 +3,7 @@
 PlayerClient playerRobot("localhost");
 Position2dProxy p2dProxy(&playerRobot, 0);
 LaserProxy laserProxy(&playerRobot, 0);
+BlobfinderProxy blobProxy(&playerRobot, 0);
 
 Map worldMap, robotMap;
 
