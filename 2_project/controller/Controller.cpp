@@ -3,7 +3,6 @@
 PlayerClient playerRobot("localhost");
 Position2dProxy p2dProxy(&playerRobot, 0);
 LaserProxy laserProxy(&playerRobot, 0);
-BlobfinderProxy blobProxy(&playerRobot, 0);
 
 Map worldMap, robotMap;
 
@@ -22,7 +21,7 @@ int main()
 		r.updateReadings();
 		
 		r.printInfoComparison();
-		r.printSigmaComparison();
+		//r.printSigmaComparison();
         
 		move(r.getVel(), r.getRotVel());
 		
@@ -58,15 +57,13 @@ vector<wallsFound> sense()
 	vector<wallsFound> lines;
 	
 	r.updateLaserReadings();
-	r.printLaserReadings();
+	//r.printLaserReadings();
 	//r.printValidLaserReadings();
     
     /*
-     * TODO: Write interpretation function, which will do some analysis
-     * with laser readings and return distances to walls and corners, as
-     * well as to the landmark, when found.
+     * TODO: Write interpretation function, which will allow us to indentify which landmark is which.
      * 
-     * interpretMeasurements()
+     * identifyLandmarks()
      */
      
      lines = interpretMeasurements();
@@ -90,10 +87,10 @@ vector<wallsFound> interpretMeasurements()
 		//found only a line
 		if (lines.size() == 1)
 		{
-			LOG(LEVEL_WARN) << "Line found";
+/*			LOG(LEVEL_WARN) << "Line found";
 			LOG(LEVEL_INFO) << "Distance = " << lines.at(0).distance;
 			LOG(LEVEL_INFO) << "Theta = " << lines.at(0).angle;
-		}
+*/		}
 		//landmark found
 		if (returnedLandmark.first)
 		{
@@ -284,6 +281,7 @@ void updateLandmarkState(point landmark)
 	LOG(LEVEL_INFO) << "Landmark X = " << landmarkX;
 	LOG(LEVEL_INFO) << "Landmark Y = " << landmarkY;
 	
+	//Identify which landmark
 	//Add particle filter
 }
 
@@ -381,11 +379,6 @@ void followWall(vector<wallsFound> lines, int wallFound)
 	return;
 	
 }
-				
-    /*
-     * TODO: Write this function, which will choose the best action to
-     * take after analysing all avaiable data.
-     */
 
 
 double randomGaussianNoise(double sigma, double mean)

@@ -16,7 +16,6 @@ using namespace arma;
 extern PlayerClient playerRobot;
 extern Position2dProxy p2dProxy;
 extern LaserProxy laserProxy;
-extern BlobfinderProxy blobProxy;
 
 class Robot
 {
@@ -38,7 +37,7 @@ class Robot
 		double getMoveRotVelSigma();
 		
 		mat getSigma();
-
+		
 		void setX(double x);
 		void setY(double y);
 		void setTh(double th);
@@ -68,7 +67,7 @@ class Robot
 		void printOneLaserReading(unsigned int value);
 		
 		void updateLaserReadings();
-
+	
 	
 	private:
 		double x, y, th, landmarkX, landmarkY;
