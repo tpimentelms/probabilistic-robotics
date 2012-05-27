@@ -220,16 +220,19 @@ void Robot::updateBlobReadings()
 		blob = blobProxy[counter];
 		if (err <= 80)
 		{
+			LOG(LEVEL_INFO) << "err < 80";
 			this->blobReadings.push_back(blob);
 		}
 		if (err > 90)
 		{
 			if (blob.color == 139)
 			{
+				LOG(LEVEL_INFO) << "err > 90";
 				blob.color = 16753920;
 			}
 			else
 			{
+				LOG(LEVEL_INFO) << "err > 90";
 				blob.color = 139;
 			}
 			this->blobReadings.push_back(blob);
@@ -260,6 +263,11 @@ void Robot::updateLaserReadings()
 vector<double> Robot::getLaserReadings()
 {
 	return this->laserReadings;
+}
+
+vector<playerc_blobfinder_blob_t> Robot::getGetBlobReadings()
+{
+	return this->blobReadings;
 }
 
 vector<int> Robot::getValidLaserReadings()

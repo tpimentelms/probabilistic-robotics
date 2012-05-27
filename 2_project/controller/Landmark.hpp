@@ -22,6 +22,7 @@ class Landmark
 		
 	private:
 		Particles landmarkParticles;
+		int color;
 };
 
 #endif

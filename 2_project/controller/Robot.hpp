@@ -73,6 +73,8 @@ class Robot
 		void printValidLaserReadings();
 		void printOneLaserReading(unsigned int value);
 		
+		vector<playerc_blobfinder_blob_t> getGetBlobReadings();
+		
 		void printBlobReadings();
 		
 		void updateLaserReadings();

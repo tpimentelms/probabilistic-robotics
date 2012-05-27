@@ -23,12 +23,12 @@ int main()
 		//r.updateState();
 		r.updateReadings();
 		
-		r.printInfoComparison();
+		//r.printInfoComparison();
 		//r.printSigmaComparison();
-		r.printRobotParticlesMeans();
-		l.printLandmarkPosition();
-        
-		move(r.getVel(), r.getRotVel());
+		//r.printRobotParticlesMeans();
+		//l.printLandmarkPosition();
+        r.printBlobReadings();
+		//move(r.getVel(), r.getRotVel());
 		
 		lines = sense();
 
@@ -62,6 +62,7 @@ vector<wallsFound> sense()
 	vector<wallsFound> lines;
 	
 	r.updateLaserReadings();
+	r.updateBlobReadings();
 	//r.printLaserReadings();
 	//r.printValidLaserReadings();
     
@@ -79,9 +80,9 @@ vector<wallsFound> interpretMeasurements()
 {
 	vector<wallsFound> lines;
 	point corner;
-	point landmark;
+	pair<point, int> landmark;
 	pair<bool, point> returnedCorner;
-	pair<bool, point> returnedLandmark;
+	pair< bool, pair<point, int> > returnedLandmark;
 	
 	lines = findLine();
 	returnedLandmark = findLandmark();//make_pair(0, landmark);
@@ -89,6 +90,7 @@ vector<wallsFound> interpretMeasurements()
 	//checks if something was found
 	if (lines.size() || returnedLandmark.first)
 	{
+		LOG(LEVEL_WARN) << "returnedLandmark.first = " << returnedLandmark.first;
 		//found only a line
 		if (lines.size() == 1)
 		{
@@ -101,10 +103,11 @@ vector<wallsFound> interpretMeasurements()
 		{
 			landmark = returnedLandmark.second;
 			updateLandmarkState(landmark);
-/*			LOG(LEVEL_WARN) << "Landmark Found";
-			LOG(LEVEL_INFO) << "Landmark X = " << landmark.x;
-			LOG(LEVEL_INFO) << "Landmark Y = " << landmark.y;
-*/		}
+			LOG(LEVEL_WARN) << "Landmark Found";
+			LOG(LEVEL_INFO) << "Landmark X = " << landmark.first.x;
+			LOG(LEVEL_INFO) << "Landmark Y = " << landmark.first.y;
+			LOG(LEVEL_INFO) << "Landmark Color = " << landmark.second;
+		}
 		//found a corner
 		if (lines.size() == 2)
 		{
@@ -240,20 +243,21 @@ pair<bool, point> findCorner(vector<wallsFound> lines)
 	
 }
 
-pair<bool, point> findLandmark()
+pair< bool, pair<point, int> > findLandmark()
 {
-	point landmark;
 	int i, first, last;
 	double distanceToLandmark, sumOfDistances, angle;
 	vector<double> laserMeasurements = r.getLaserReadings();
 	vector<int> validLaserMeasurements = r.getValidLaserReadings();
-	
+	pair<point, int> landmark;
+	vector<playerc_blobfinder_blob_t> blob;
 	pair<int, int> sensorsUsed = findLandmarkClusterOfMeasures(validLaserMeasurements, laserMeasurements);
 	
 	if(sensorsUsed.first == 0)
 	{
-		landmark.x = 0;
-		landmark.y = 0;
+		landmark.first.x = 0;
+		landmark.first.y = 0;
+		landmark.second = 0;
 		return make_pair(0, landmark);
 	}
 	
@@ -264,7 +268,7 @@ pair<bool, point> findLandmark()
 		
 	for (i = first; i <= last ; i++)
 	{
-		sumOfDistances += abs(cos(dtor(abs(i-(last+first)/2)))*laserMeasurements.at(i))+RAIO;
+		sumOfDistances += abs(cos(dtor(abs(i-(last+first)/2)))*laserMeasurements[i])+RAIO;
 	}
 	
 	distanceToLandmark = sumOfDistances/(last-first+1);
@@ -272,19 +276,23 @@ pair<bool, point> findLandmark()
 	
 	angle = dtor((int((last+first)/2) + 270) % 360);
 	
-	landmark.x = cos(angle)*distanceToLandmark;
-	landmark.y = sin(angle)*distanceToLandmark;
+	landmark.first.x = cos(angle)*distanceToLandmark;
+	landmark.first.y = sin(angle)*distanceToLandmark;
+	blob = r.getGetBlobReadings();
+	landmark.second = blob[0].color;
 	
 	return make_pair(1, landmark);
 }
 
-void updateLandmarkState(point landmark)
+void updateLandmarkState(pair<point, int> landmark)
 {
-	double landmarkX = sin(r.getTh())*landmark.x + cos(r.getTh())*landmark.y + r.getX();
-	double landmarkY = -cos(r.getTh())*landmark.x + sin(r.getTh())*landmark.y + r.getY();
+	double landmarkX = sin(r.getTh())*landmark.first.x + cos(r.getTh())*landmark.first.y + r.getX();
+	double landmarkY = -cos(r.getTh())*landmark.first.x + sin(r.getTh())*landmark.first.y + r.getY();
+	int landmarkColor = landmark.second;
 	
 	LOG(LEVEL_INFO) << "Landmark X = " << landmarkX;
 	LOG(LEVEL_INFO) << "Landmark Y = " << landmarkY;
+	LOG(LEVEL_INFO) << "Landmark color = " << landmarkColor;
 	
 	//Identify which landmark
 	//Add particle filter
@@ -571,32 +579,37 @@ pair<int, int> findLandmarkClusterOfMeasures(vector<int> validLaserMeasurements,
 	unsigned int i, counter;
 	int last, first;
 	double distanceToLandmark, correctAngle;
+	vector<playerc_blobfinder_blob_t> blobs;
 	
 	last = 0;
 	counter = 0;
 	first = 0;
-	
-	for(i=0;i<validLaserMeasurements.size();i++)
+	blobs = r.getGetBlobReadings();
+	LOG(LEVEL_WARN) << "blob size = " << blobs.size();
+	if (blobs.size() > 0)
 	{
-		if(last == validLaserMeasurements.at(i) - 1)
+		for(i=0;i<validLaserMeasurements.size();i++)
 		{
-			last = validLaserMeasurements.at(i);
-			counter++;
-		}
-		else
-		{
-			distanceToLandmark = laserMeasurements.at(int((last+first)/2))+RAIO;
-			correctAngle = rtod(2*atan(RAIO/(distanceToLandmark)));
-						
-			if(counter < correctAngle + 20 && counter > correctAngle-20 && counter > 25)
+			if(last == validLaserMeasurements.at(i) - 1)
 			{
-				return make_pair(first, last);
+				last = validLaserMeasurements.at(i);
+				counter++;
 			}
 			else
 			{
-				first = validLaserMeasurements.at(i);
-				last = validLaserMeasurements.at(i);
-				counter = 0;
+				distanceToLandmark = laserMeasurements.at(int((last+first)/2))+RAIO;
+				correctAngle = rtod(2*atan(RAIO/(distanceToLandmark)));
+							
+				if(counter < correctAngle + 20 && counter > correctAngle-20 && counter > 25)
+				{
+					return make_pair(first, last);
+				}
+				else
+				{
+					first = validLaserMeasurements.at(i);
+					last = validLaserMeasurements.at(i);
+					counter = 0;
+				}
 			}
 		}
 	}
@@ -669,11 +682,11 @@ vector<particle> predictParticles(vector<particle> robotParticles)
 void updateParticles(vector<wallsFound> lines, vector<particle> robotParticles)
 {
 	point corner;
-	point landmark;
+	pair<point, int> landmark;
 	pair<bool, point> returnedCorner;
-	pair<bool, point> returnedLandmark;
+	pair<bool, pair< point, int> > returnedLandmark;
 	
-	returnedLandmark = findLandmark();//make_pair(0, landmark);
+	returnedLandmark = findLandmark ();//make_pair(0, landmark);
 	
 	//checks if something was found
 	if (lines.size() || returnedLandmark.first)

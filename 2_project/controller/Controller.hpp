@@ -32,7 +32,7 @@ void move(double newV, double newW);
 
 vector<wallsFound> sense();
 
-void updateLandmarkState(point landmark);
+void updateLandmarkState(pair<point, int> landmark);
 
 void particleFilter(vector<wallsFound> lines);
 vector<particle> predictParticles(vector<particle> robotParticles);
@@ -42,7 +42,7 @@ particle movementPrediction(particle particlePosition, double deltaT);
 vector<wallsFound> interpretMeasurements();
 vector<wallsFound> findLine();
 pair<bool, point> findCorner(vector<wallsFound> lines);
-pair<bool, point> findLandmark();
+pair<bool, pair<point, int> > findLandmark();
 
 double randomGaussianNoise(double sigma, double mean);
 double getMeanRoundWorld(vector<double> array, int worldSize);
