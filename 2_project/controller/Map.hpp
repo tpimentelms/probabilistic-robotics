@@ -2,12 +2,12 @@
 #define MAP_HPP
 
 #include <Controller.hpp>
+#include <Robot.hpp>
 #include <ProcessLogger.h>
 
 #include <libplayerc++/playerc++.h>
 #include <vector>
 #include <armadillo>
-#include <Robot.hpp>
 
 using namespace std;
 using namespace PlayerCc;

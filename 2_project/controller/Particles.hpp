@@ -6,11 +6,16 @@
 #include <libplayerc++/playerc++.h>
 #include <vector>
 #include <armadillo>
+#include <cstdio>
+#include <cv.h>
+#include <cvaux.h>
+#include <highgui.h>  
 
 using namespace std;
 using namespace arma;
+using namespace PlayerCc;
 
-#define PARTICLES_SIZE 500
+#define PARTICLES_SIZE 5000
 
 struct particle_t
 {
@@ -26,6 +31,7 @@ class Particles
 		
 		void printParticlesPositions();
 		void printParticlesPositionsMeans();
+		void showParticlesPositions();
 		
 		vector<particle> getParticles();
 		void setParticles(vector<particle> newParticles);

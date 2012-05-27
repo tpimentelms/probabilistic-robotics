@@ -188,7 +188,7 @@ void Robot::printSigmaComparison()
 	LOG(LEVEL_WARN) << "Robot Sigma info";
 	LOG(LEVEL_INFO) << "X Sigma = " << this->Sigma(0,0);
 	LOG(LEVEL_INFO) << "Y Sigma = " << this->Sigma(1,1);
-	LOG(LEVEL_INFO) << "Th Sigma = " << this->Sigma(2,2);
+	LOG(LEVEL_INFO) << "Th Sigma = " << rtod(this->Sigma(2,2));
 	LOG(LEVEL_INFO) << "Vel Sigma = " << this->Sigma(3,3);
 	LOG(LEVEL_INFO) << "RotVel Sigma = " << this->Sigma(4,4);
 	LOG(LEVEL_INFO) << "Landmark X Sigma = " << this->Sigma(5,5);
@@ -362,7 +362,7 @@ void Robot::printValidLaserReadings()
 	unsigned int counter;
 	for (counter = 0; counter < this->validLaserReadings.size(); counter++)
 	{	
-		LOG(LEVEL_INFO) << "Valid Laser[" << counter << "] = " << this->validLaserReadings.at(counter);
+		LOG(LEVEL_INFO) << "Valid Laser[" << counter << "] = " << this->validLaserReadings[counter];
 	}
 }
 

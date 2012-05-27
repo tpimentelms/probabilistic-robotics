@@ -15,9 +15,9 @@ Particles::Particles()
 	
 	for (counter = 0; counter < this->particleArray.size(); counter++)
 	{
-		startingParticle.x = double(rand() % 2700 - 1300)/100;
-		startingParticle.y = double(rand() % 2500 - 1200)/ 100;
-		startingParticle.th = double(rand() % 1800)/50;
+		startingParticle.x = (double(rand() % 2500 - 1300))/100;
+		startingParticle.y = (double(rand() % 2500 - 1300))/ 100;
+		startingParticle.th = dtor((double(rand() % 1800))/5);
 		this->particleArray[counter] = startingParticle;
 	}
 }
@@ -53,9 +53,9 @@ void Particles::printParticlesPositions()
 	unsigned int counter;
 	for (counter = 0; counter < this->particleArray.size(); counter++)
 	{	
-		LOG(LEVEL_INFO) << "Particle[" << counter << "].x = " << this->particleArray.at(counter).x;
-		LOG(LEVEL_INFO) << "Particle[" << counter << "].y = " << this->particleArray.at(counter).y;
-		LOG(LEVEL_INFO) << "Particle[" << counter << "].th = " << this->particleArray.at(counter).th;
+		LOG(LEVEL_INFO) << "Particle[" << counter << "].x = " << this->particleArray[counter].x;
+		LOG(LEVEL_INFO) << "Particle[" << counter << "].y = " << this->particleArray[counter].y;
+		LOG(LEVEL_INFO) << "Particle[" << counter << "].th = " << rtod(this->particleArray[counter].th);
 	}
 }
 
@@ -80,12 +80,12 @@ void Particles::printParticlesPositionsMeans()
 	unsigned int counter;
 	for (counter = 0; counter < this->particleArray.size(); counter++)
 	{
-		meanX = this->particleArray.at(counter).x;
-		meanY = this->particleArray.at(counter).y;
-		meanTh = this->particleArray.at(counter).th;
+		meanX += this->particleArray[counter].x;
+		meanY += this->particleArray[counter].y;
+		meanTh += this->particleArray[counter].th;
 	}
 	
 	LOG(LEVEL_INFO) << "Particle X = " << meanX/particleArray.size();
 	LOG(LEVEL_INFO) << "Particle Y = " << meanY/particleArray.size();
-	LOG(LEVEL_INFO) << "Particle Th = " << meanTh/particleArray.size();
+	LOG(LEVEL_INFO) << "Particle Th = " << rtod(meanTh/particleArray.size());
 }

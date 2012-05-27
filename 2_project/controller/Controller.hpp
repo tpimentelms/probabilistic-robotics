@@ -5,6 +5,7 @@
 #include <Landmark.hpp>
 #include <Particles.hpp>
 #include <Map.hpp>
+#include <Image.hpp>
 #include <ProcessLogger.h>
 
 #include <libplayerc++/playerc++.h>
@@ -38,6 +39,9 @@ void particleFilter(vector<wallsFound> lines);
 vector<particle> predictParticles(vector<particle> robotParticles);
 void updateParticles(vector<wallsFound> lines, vector<particle> robotParticles);
 particle movementPrediction(particle particlePosition, double deltaT);
+double calculateDistanceFromParticleToLine(particle robotParticles);
+double calculateDistanceFromParticleToCorner(particle robotParticle);
+vector<particle> sampleParticles(vector< pair<particle, double> > weightedParticles, double wMax);
 
 vector<wallsFound> interpretMeasurements();
 vector<wallsFound> findLine();

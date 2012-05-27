@@ -9,6 +9,7 @@ Map worldMap, robotMap;
 
 Robot r;
 Landmark l;
+Image particlesImage;
 
 
 int main()
@@ -23,12 +24,15 @@ int main()
 		//r.updateState();
 		r.updateReadings();
 		
-		//r.printInfoComparison();
+//		r.printInfoComparison();
 		//r.printSigmaComparison();
-		//r.printRobotParticlesMeans();
-		//l.printLandmarkPosition();
+//		r.printRobotParticlesMeans();
+//		l.printLandmarkPosition();
         r.printBlobReadings();
-		//move(r.getVel(), r.getRotVel());
+        
+        particlesImage.showParticlesPositions(r, l);
+        
+		move(r.getVel(), r.getRotVel());
 		
 		lines = sense();
 
@@ -36,6 +40,7 @@ int main()
 		
 		strategy(lines);//checked, still working
 	}
+	
 	
 	return 0;
 }
@@ -95,8 +100,8 @@ vector<wallsFound> interpretMeasurements()
 		if (lines.size() == 1)
 		{
 /*			LOG(LEVEL_WARN) << "Line found";
-			LOG(LEVEL_INFO) << "Distance = " << lines.at(0).distance;
-			LOG(LEVEL_INFO) << "Theta = " << lines.at(0).angle;
+			LOG(LEVEL_INFO) << "Distance = " << lines[0].distance;
+			LOG(LEVEL_INFO) << "Theta = " << lines[0].angle;
 */		}
 		//landmark found
 		if (returnedLandmark.first)
@@ -649,7 +654,6 @@ void particleFilter(vector<wallsFound> lines)
 	updateParticles(lines, robotParticles);
 }
 
-
 vector<particle> predictParticles(vector<particle> robotParticles)
 {
 	static struct timeval earlier;
@@ -663,67 +667,20 @@ vector<particle> predictParticles(vector<particle> robotParticles)
 		deltaT = double(timeval_diff(NULL,&later,&earlier))/1000000;
 	
 	//deltaT = 1;
-	LOG(LEVEL_WARN) << "Time between steps";
-	LOG(LEVEL_INFO) << "Time found = " << deltaT;
+//	LOG(LEVEL_WARN) << "Time between steps";
+//	LOG(LEVEL_INFO) << "Time found = " << deltaT;
 	
 	gettimeofday(&earlier,NULL);
 	
 	vector<particle> predicted(PARTICLES_SIZE);
 	unsigned int counter;
 	
-	for(counter=0; counter<robotParticles.size(); counter++)
+	for(counter = 0; counter<robotParticles.size(); counter++)
 	{
 		predicted[counter] = movementPrediction(robotParticles.at(counter), deltaT);
 	}
 	
 	return predicted;
-}
-
-void updateParticles(vector<wallsFound> lines, vector<particle> robotParticles)
-{
-	point corner;
-	pair<point, int> landmark;
-	pair<bool, point> returnedCorner;
-	pair<bool, pair< point, int> > returnedLandmark;
-	
-	returnedLandmark = findLandmark ();//make_pair(0, landmark);
-	
-	//checks if something was found
-	if (lines.size() || returnedLandmark.first)
-	{
-		//found only a line
-		if (lines.size() == 1)
-		{
-/*			LOG(LEVEL_WARN) << "Line found";
-			LOG(LEVEL_INFO) << "Distance = " << lines.at(0).distance;
-			LOG(LEVEL_INFO) << "Theta = " << lines.at(0).angle;
-*/		}
-		//landmark found
-		if (returnedLandmark.first)
-		{
-			landmark = returnedLandmark.second;
-			updateLandmarkState(landmark);
-/*			LOG(LEVEL_WARN) << "Landmark Found";
-			LOG(LEVEL_INFO) << "Landmark X = " << landmark.x;
-			LOG(LEVEL_INFO) << "Landmark Y = " << landmark.y;
-*/		}
-		//found a corner
-		if (lines.size() == 2)
-		{
-			returnedCorner = findCorner(lines);
-			corner = returnedCorner.second;
-/*			
-			if(returnedCorner.first == 1)
-				LOG(LEVEL_ERROR) << "Open Corner Found";
-			else
-				LOG(LEVEL_ERROR) << "Closed Corner Found";
-			
-			LOG(LEVEL_INFO) << "Corner X = " << corner.x;
-			LOG(LEVEL_INFO) << "Corner Y = " << corner.y;
-*/		}
-	}
-	
-	r.setParticles(robotParticles);
 }
 
 particle movementPrediction(particle particlePosition, double deltaT)
@@ -755,5 +712,228 @@ particle movementPrediction(particle particlePosition, double deltaT)
 	particlePosition.y = y + deltaY;
 	particlePosition.th = th + deltaTh;
 	
+	if(particlePosition.x > 12.2 || particlePosition.x < -12.2 || particlePosition.y > 12 || particlePosition.y < -12)
+	{
+		particlePosition.x = (double(rand() % 2700 - 1400))/100;
+		particlePosition.y = (double(rand() % 2500 - 1300))/ 100;
+		particlePosition.th = dtor((double(rand() % 1800))/5);
+	}
+	
 	return particlePosition;
+}
+
+void updateParticles(vector<wallsFound> lines, vector<particle> robotParticles)
+{
+	point corner;
+	pair<point, int> landmark;
+	pair<bool, point> returnedCorner;
+	pair<bool, pair< point, int> > returnedLandmark;
+	vector< pair<particle, double> > weightedParticles;
+	double w, distanceParticleToFeature, sigmaSquared, sigma, wMax = 0;
+	unsigned int counter;
+	
+	returnedLandmark = findLandmark();//make_pair(0, landmark);
+	
+	//checks if something was found
+	if (lines.size() || returnedLandmark.first)
+	{
+		//found only a line
+		if (lines.size() == 1)
+		{
+			LOG(LEVEL_WARN) << "Line found";
+//			LOG(LEVEL_INFO) << "Distance = " << lines[0].distance;
+//			LOG(LEVEL_INFO) << "Theta = " << lines[0].angle;
+			
+			for(counter = 0; counter<robotParticles.size(); counter++)
+			{
+				sigma = 1; // TODO: Change sigma ------------------------------------------------
+				
+				sigmaSquared = pow(sigma,2);
+				distanceParticleToFeature = calculateDistanceFromParticleToLine(robotParticles[counter]);
+				w = (1/sqrt(2*M_PI*sigmaSquared))*exp(-0.5*pow((distanceParticleToFeature - lines[0].distance),2)/sigmaSquared);
+				weightedParticles.push_back(make_pair(robotParticles[counter], w));
+				
+				
+				LOG(LEVEL_WARN) << "Weight is " << w;
+				if(w > wMax)
+					wMax = w;
+			}
+			LOG(LEVEL_WARN) << "Max weight is " << wMax;
+			
+			robotParticles = sampleParticles(weightedParticles, wMax);
+		}
+		//landmark found
+		if (returnedLandmark.first)
+		{
+			landmark = returnedLandmark.second;
+			updateLandmarkState(landmark);
+/*			LOG(LEVEL_WARN) << "Landmark Found";
+			LOG(LEVEL_INFO) << "Landmark X = " << landmark.x;
+			LOG(LEVEL_INFO) << "Landmark Y = " << landmark.y;
+*/		}
+		//found a corner
+		if (lines.size() == 2)
+		{
+			returnedCorner = findCorner(lines);
+			corner = returnedCorner.second;
+			
+			for(counter = 0; counter<robotParticles.size(); counter++)
+			{
+				sigma = 0.5; // TODO: Change sigma ------------------------------------------------
+				
+				sigmaSquared = pow(sigma,2);
+				if(returnedCorner.first == 1)
+				{
+					distanceParticleToFeature = sqrt( pow(robotParticles[counter].y - 4.6, 2) + pow(robotParticles[counter].x + 7.75, 2) );
+				}
+				else
+				{
+					distanceParticleToFeature = calculateDistanceFromParticleToCorner(robotParticles[counter]);
+				}
+				w = (1/sqrt(2*M_PI*sigmaSquared))*exp(-0.5*pow((distanceParticleToFeature - lines[0].distance),2)/sigmaSquared);
+				weightedParticles.push_back(make_pair(robotParticles[counter], w));
+				
+//				LOG(LEVEL_WARN) << "Weight is " << w;
+				
+				if(w > wMax)
+					wMax = w;
+			}
+			LOG(LEVEL_WARN) << "Weight is " << wMax;
+			
+			robotParticles = sampleParticles(weightedParticles, wMax);
+			
+			if(returnedCorner.first == 1)
+			{
+				LOG(LEVEL_WARN) << "Open Corner Found";
+			}
+			else
+			{
+				LOG(LEVEL_WARN) << "Closed Corner Found";
+			}
+			
+			
+			/*
+			LOG(LEVEL_INFO) << "Corner X = " << corner.x;
+			LOG(LEVEL_INFO) << "Corner Y = " << corner.y;
+			*/
+		}
+	}
+	
+	
+	r.setParticles(robotParticles);
+}
+
+vector<particle> sampleParticles(vector< pair<particle, double> > weightedParticles, double wMax)
+{
+	vector<particle> robotParticles;
+	unsigned int counter, index = 0;
+	pair<particle, double> weightedParticle;
+	double walkingFactor;
+	bool foundParticle = false;
+	
+	for(counter = 0; counter<weightedParticles.size(); counter++)
+	{
+		walkingFactor = double(rand() % 1000)*2*wMax/1000;
+		
+		while (!foundParticle)
+		{
+			weightedParticle = weightedParticles[index];
+			
+			if(walkingFactor < weightedParticle.second)
+			{
+				foundParticle = true;
+				index = (index + 1) % weightedParticles.size();
+			}
+			else
+			{
+				walkingFactor -= weightedParticle.second;
+				index = (index + 1) % weightedParticles.size();
+			}
+		}
+		
+		foundParticle = false;
+		robotParticles.push_back(weightedParticle.first);
+	}
+	
+	return robotParticles;
+}
+
+double calculateDistanceFromParticleToLine(particle robotParticle)
+{
+	double minDistance = 100;
+	
+	if ( (12 - robotParticle.x) < minDistance )
+	{
+		minDistance = 12 - robotParticle.x;
+	}
+	if ( (12 - robotParticle.y) < minDistance )
+	{
+		minDistance = 12 - robotParticle.y;
+	}
+	if ( (robotParticle.x + 12) < minDistance )
+	{
+		minDistance = robotParticle.x + 12;
+	}
+	if ( (robotParticle.y + 12) < minDistance )
+	{
+		minDistance = robotParticle.y + 12;
+	}
+	if ((robotParticle.x < -2) && (robotParticle.y > 0))
+	{
+		// distance to odd walls
+		double d1 = (abs(2.1*robotParticle.x - 4.45*robotParticle.y + 36.745)/4.9206198796493);//sqrt(pow(2.1, 2) + pow(-4.45, 2)));
+		double d2 = (abs(7.4*robotParticle.x - 1.45*robotParticle.y + 64.02)/7.5407227770287);//sqrt(pow(7.4, 2) + pow(-1.45, 2)));
+		
+		if (d1 < minDistance)
+		{
+			minDistance = d1;
+		}
+		if (d2 < minDistance)
+		{
+			minDistance = d2;
+		}
+	}
+	
+	return minDistance;
+}
+
+double calculateDistanceFromParticleToCorner(particle robotParticle)
+{
+	double minDistance = 100;
+	
+	// check if it's near the odd walls
+	if (robotParticle.x < 0)
+	{
+		if(robotParticle.y > 0)
+		{
+			double d1 = sqrt( pow(robotParticle.y - 12, 2) + pow(robotParticle.x + 6.3, 2) );
+			double d2 = sqrt( pow(robotParticle.y - 2.5, 2) + pow(robotParticle.x + 12.2, 2) );
+			
+			if (d1 < minDistance)
+			{
+				minDistance = d1;
+			}
+			if (d2 < minDistance)
+			{
+				minDistance = d2;
+			}
+		}
+		else
+		{
+			minDistance = sqrt( pow(robotParticle.y + 12, 2) + pow(robotParticle.x +12.2, 2) );
+		}
+	}
+	else
+	{
+		if(robotParticle.y > 0)
+		{
+			minDistance = sqrt( pow(12 - robotParticle.y, 2) + pow(12.2 - robotParticle.x, 2) );
+		}
+		else
+		{
+			minDistance = sqrt( pow(robotParticle.y + 12, 2) + pow(12.2 - robotParticle.x, 2) );
+		}
+	}
+	
+	return minDistance;
 }
