@@ -73,7 +73,11 @@ class Robot
 		void printValidLaserReadings();
 		void printOneLaserReading(unsigned int value);
 		
+		void printBlobReadings();
+		
 		void updateLaserReadings();
+		
+		void updateBlobReadings();
 	
 	
 	private:
@@ -81,6 +85,7 @@ class Robot
 		double v, w;
 		double moveVelSigma, moveRotVelSigma; // Needs to put this in a matrix, covariance of Ut
 		vector<double> laserReadings;
+		vector<playerc_blobfinder_blob_t> blobReadings;
 		vector<int> validLaserReadings;
 		mat Sigma;
 		int strategy;

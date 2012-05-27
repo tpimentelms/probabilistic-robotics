@@ -205,6 +205,39 @@ void Robot::printRobotParticlesMeans()
 	this->robotParticles.printParticlesPositionsMeans();
 }
 
+void Robot::updateBlobReadings()
+{
+	unsigned int counter;
+	playerc_blobfinder_blob_t blob;
+	int err;
+	
+	this->blobReadings.clear();
+	
+	for (counter = 0; counter < blobProxy.GetCount(); counter++)
+	{
+		err = rand() % 100 + 1;
+		LOG(LEVEL_INFO) << "counter = " << counter;
+		blob = blobProxy[counter];
+		if (err <= 80)
+		{
+			this->blobReadings.push_back(blob);
+		}
+		if (err > 90)
+		{
+			if (blob.color == 139)
+			{
+				blob.color = 16753920;
+			}
+			else
+			{
+				blob.color = 139;
+			}
+			this->blobReadings.push_back(blob);
+		}
+	}
+		
+}
+
 void Robot::updateLaserReadings()
 {
 	unsigned int counter;
@@ -263,6 +296,27 @@ double Robot::getIfValidLaserReading(unsigned int value)
 	return this->laserReadings.at(value);
 }
 
+void Robot::printBlobReadings()
+{
+	if (this->blobReadings.size() == 0)
+	{
+		LOG(LEVEL_ERROR) << "Blob info";
+		LOG(LEVEL_ERROR) << "Trying to access laser data while readings "
+                         << "array size is zero.";
+		
+		return;
+	}
+	
+	LOG(LEVEL_WARN) << "Blob info";
+	LOG(LEVEL_INFO) << "Blob readings array size = " << this->blobReadings.size();
+	
+	unsigned int counter;
+	for (counter = 0; counter < this->blobReadings.size(); counter++)
+	{	
+		LOG(LEVEL_INFO) << "blob[" << counter << "] = " << this->blobReadings[counter].color;
+	}
+}
+
 void Robot::printLaserReadings()
 {
 	if (this->laserReadings.size() == 0)
@@ -280,7 +334,7 @@ void Robot::printLaserReadings()
 	unsigned int counter;
 	for (counter = 0; counter < this->laserReadings.size(); counter++)
 	{	
-		LOG(LEVEL_INFO) << "Laser[" << counter << "] = " << this->laserReadings.at(counter);
+		LOG(LEVEL_INFO) << "Laser[" << counter << "] = " << this->laserReadings[counter];
 	}
 }
 
