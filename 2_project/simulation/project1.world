@@ -45,48 +45,26 @@ pioneer2dx
   odom_error [0.01 0.05 0.01 0.02 0.01 0.02] 
 )
 
-define cartonOrange model
+define landmarkOrange model
 (
-	# a carton is retangular
-	# so make a square shape and use size[]
-	block
-	(
-	points 4
-	point[0] [1 0]
-	point[1] [1 1]
-	point[2] [0 1]
-	point[3] [0 0]
-	z [0 1]
-	)
-	# average litre carton size is ~ 20cm x 10cm x 5cm
-	size [1 2 0.5]
+	bitmap "rink.png"
+	size [1 1 0.5]
 	color "orange"
 	blob_return 1
     laser_return 1
 )
 
-define cartonDarkBlue model
+define landmarkDarkBlue model
 (
-	# a carton is retangular
-	# so make a square shape and use size[]
-	block
-	(
-	points 4
-	point[0] [1 0]
-	point[1] [1 1]
-	point[2] [0 1]
-	point[3] [0 0]
-	z [0 1]
-	)
-	# average litre carton size is ~ 20cm x 10cm x 5cm
-	size [1 2 0.5]
+	bitmap "rink.png"
+	size [1 1 0.5]
 	color "DarkBlue"
 	blob_return 1
     laser_return 1
 )
 
 
-cartonOrange(name "cartonOrange" pose [-8 2 0 90])
-cartonDarkBlue(name "cartonDarkBlue" pose [0 -10 0 90])
+landmarkOrange(name "landmarkOrange" pose [-8 2 0 90])
+landmarkDarkBlue(name "landmarkDarkBlue" pose [0 -10 0 90])
 
 

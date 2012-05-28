@@ -8,7 +8,7 @@ define floorplan model
   color "gray30"
 
   # most maps will need a bounding box
-  boundary 1
+  boundary 2
 
   gui_nose 0
   gui_grid 0
