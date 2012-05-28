@@ -216,23 +216,23 @@ void Robot::updateBlobReadings()
 	for (counter = 0; counter < blobProxy.GetCount(); counter++)
 	{
 		err = rand() % 100 + 1;
-		LOG(LEVEL_INFO) << "counter = " << counter;
+//		LOG(LEVEL_INFO) << "counter = " << counter;
 		blob = blobProxy[counter];
 		if (err <= 80)
 		{
-			LOG(LEVEL_INFO) << "err < 80";
+//			LOG(LEVEL_INFO) << "err < 80";
 			this->blobReadings.push_back(blob);
 		}
 		if (err > 90)
 		{
 			if (blob.color == 139)
 			{
-				LOG(LEVEL_INFO) << "err > 90";
+//				LOG(LEVEL_INFO) << "err > 90";
 				blob.color = 16753920;
 			}
 			else
 			{
-				LOG(LEVEL_INFO) << "err > 90";
+//				LOG(LEVEL_INFO) << "err > 90";
 				blob.color = 139;
 			}
 			this->blobReadings.push_back(blob);

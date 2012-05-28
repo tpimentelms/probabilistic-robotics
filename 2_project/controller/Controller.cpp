@@ -8,7 +8,7 @@ BlobfinderProxy blobProxy(&playerRobot, 0);
 Map worldMap, robotMap;
 
 Robot r;
-Landmark l;
+Landmark landmark1, landmark2;
 Image particlesImage;
 
 
@@ -28,9 +28,9 @@ int main()
 		//r.printSigmaComparison();
 //		r.printRobotParticlesMeans();
 //		l.printLandmarkPosition();
-        r.printBlobReadings();
+//		r.printBlobReadings();
         
-        particlesImage.showParticlesPositions(r, l);
+        particlesImage.showParticlesPositions(r, landmark1, landmark2);
         
 		move(r.getVel(), r.getRotVel());
 		
@@ -95,7 +95,7 @@ vector<wallsFound> interpretMeasurements()
 	//checks if something was found
 	if (lines.size() || returnedLandmark.first)
 	{
-		LOG(LEVEL_WARN) << "returnedLandmark.first = " << returnedLandmark.first;
+//		LOG(LEVEL_WARN) << "returnedLandmark.first = " << returnedLandmark.first;
 		//found only a line
 		if (lines.size() == 1)
 		{
@@ -108,11 +108,11 @@ vector<wallsFound> interpretMeasurements()
 		{
 			landmark = returnedLandmark.second;
 			updateLandmarkState(landmark);
-			LOG(LEVEL_WARN) << "Landmark Found";
+/*			LOG(LEVEL_WARN) << "Landmark Found";
 			LOG(LEVEL_INFO) << "Landmark X = " << landmark.first.x;
 			LOG(LEVEL_INFO) << "Landmark Y = " << landmark.first.y;
 			LOG(LEVEL_INFO) << "Landmark Color = " << landmark.second;
-		}
+*/		}
 		//found a corner
 		if (lines.size() == 2)
 		{
@@ -291,16 +291,55 @@ pair< bool, pair<point, int> > findLandmark()
 
 void updateLandmarkState(pair<point, int> landmark)
 {
-	double landmarkX = sin(r.getTh())*landmark.first.x + cos(r.getTh())*landmark.first.y + r.getX();
-	double landmarkY = -cos(r.getTh())*landmark.first.x + sin(r.getTh())*landmark.first.y + r.getY();
+	double landmarkX, landmarkY;
+	double distance;
+	vector<particle> robotParticles = r.getParticles();
 	int landmarkColor = landmark.second;
+	vector<particle> landmarkParticles;
+	vector< pair<particle, double> > weightedParticles;
+	double w, wMax = 0;
+	double sigma, sigmaSquared;
 	
 	LOG(LEVEL_INFO) << "Landmark X = " << landmarkX;
 	LOG(LEVEL_INFO) << "Landmark Y = " << landmarkY;
 	LOG(LEVEL_INFO) << "Landmark color = " << landmarkColor;
 	
 	//Identify which landmark
-	//Add particle filter
+	if(landmark.second > 500)
+		landmarkParticles = landmark1.getParticles();
+	else
+		landmarkParticles = landmark2.getParticles();
+	
+	for(unsigned int counter = 0; counter < landmarkParticles.size(); counter++)
+	{
+		int randomParticleIndex = rand() % 5000;
+		landmarkX = sin(robotParticles[randomParticleIndex].th)*landmark.first.x
+				  + cos(robotParticles[randomParticleIndex].th)*landmark.first.y
+				  + r.getX();
+		landmarkY = -cos(robotParticles[randomParticleIndex].th)*landmark.first.x
+				  + sin(robotParticles[randomParticleIndex].th)*landmark.first.y
+				  + r.getY();
+		
+		sigma = 1; // TODO: Change sigma ------------------------------------------------
+			
+		sigmaSquared = pow(sigma,2);
+		distance = sqrt(pow(landmarkY - landmarkParticles[counter].y, 2)
+								+ pow(landmarkX - landmarkParticles[counter].x, 2));
+		w = (1/sqrt(2*M_PI*sigmaSquared))*exp(-0.5*pow((distance),2)/sigmaSquared) + 0.3;
+		weightedParticles.push_back(make_pair(robotParticles[counter], w));
+		
+		LOG(LEVEL_WARN) << "Weight is " << w;
+		if(w > wMax)
+			wMax = w;
+	}
+	
+	landmarkParticles = sampleParticles(weightedParticles, wMax);
+	
+	//Identify which landmark
+	if(landmark.second > 500)
+		landmark1.setParticles(landmarkParticles);
+	else
+		landmark2.setParticles(landmarkParticles);
 }
 
 void strategy(vector<wallsFound> lines)
@@ -590,7 +629,7 @@ pair<int, int> findLandmarkClusterOfMeasures(vector<int> validLaserMeasurements,
 	counter = 0;
 	first = 0;
 	blobs = r.getGetBlobReadings();
-	LOG(LEVEL_WARN) << "blob size = " << blobs.size();
+//	LOG(LEVEL_WARN) << "blob size = " << blobs.size();
 	if (blobs.size() > 0)
 	{
 		for(i=0;i<validLaserMeasurements.size();i++)
@@ -740,7 +779,7 @@ void updateParticles(vector<wallsFound> lines, vector<particle> robotParticles)
 		//found only a line
 		if (lines.size() == 1)
 		{
-			LOG(LEVEL_WARN) << "Line found";
+//			LOG(LEVEL_WARN) << "Line found";
 //			LOG(LEVEL_INFO) << "Distance = " << lines[0].distance;
 //			LOG(LEVEL_INFO) << "Theta = " << lines[0].angle;
 			
@@ -750,15 +789,15 @@ void updateParticles(vector<wallsFound> lines, vector<particle> robotParticles)
 				
 				sigmaSquared = pow(sigma,2);
 				distanceParticleToFeature = calculateDistanceFromParticleToLine(robotParticles[counter]);
-				w = (1/sqrt(2*M_PI*sigmaSquared))*exp(-0.5*pow((distanceParticleToFeature - lines[0].distance),2)/sigmaSquared);
+				w = (1/sqrt(2*M_PI*sigmaSquared))*exp(-0.5*pow((distanceParticleToFeature - lines[0].distance),2)/sigmaSquared) + 0.2;
 				weightedParticles.push_back(make_pair(robotParticles[counter], w));
 				
 				
-				LOG(LEVEL_WARN) << "Weight is " << w;
+//				LOG(LEVEL_WARN) << "Weight is " << w;
 				if(w > wMax)
 					wMax = w;
 			}
-			LOG(LEVEL_WARN) << "Max weight is " << wMax;
+//			LOG(LEVEL_WARN) << "Max weight is " << wMax;
 			
 			robotParticles = sampleParticles(weightedParticles, wMax);
 		}
@@ -767,10 +806,12 @@ void updateParticles(vector<wallsFound> lines, vector<particle> robotParticles)
 		{
 			landmark = returnedLandmark.second;
 			updateLandmarkState(landmark);
+			
 /*			LOG(LEVEL_WARN) << "Landmark Found";
 			LOG(LEVEL_INFO) << "Landmark X = " << landmark.x;
 			LOG(LEVEL_INFO) << "Landmark Y = " << landmark.y;
-*/		}
+*/
+		}
 		//found a corner
 		if (lines.size() == 2)
 		{

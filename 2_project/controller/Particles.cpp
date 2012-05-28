@@ -22,6 +22,28 @@ Particles::Particles()
 	}
 }
 
+Particles::Particles(int particlesSize)
+{
+	static bool first = true;
+	if (first == true)
+	{
+		srand(time(0));
+		first = false;
+	}
+	
+	unsigned int counter;
+	this->particleArray.resize(particlesSize);
+	particle startingParticle;
+	
+	for (counter = 0; counter < this->particleArray.size(); counter++)
+	{
+		startingParticle.x = (double(rand() % 2500 - 1300))/100;
+		startingParticle.y = (double(rand() % 2500 - 1300))/ 100;
+		startingParticle.th = dtor((double(rand() % 1800))/5);
+		this->particleArray[counter] = startingParticle;
+	}
+}
+
 Particles::~Particles()
 {
 }

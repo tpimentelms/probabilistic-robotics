@@ -27,6 +27,7 @@ class Particles
 {
 	public:
 		Particles();
+		Particles(int particlesSize);
 		~Particles();
 		
 		void printParticlesPositions();

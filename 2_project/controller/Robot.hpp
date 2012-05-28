@@ -1,9 +1,9 @@
 #ifndef ROBOT_HPP
 #define ROBOT_HPP
 
-#include <Controller.hpp>
+//#include <Controller.hpp>
 #include <ProcessLogger.h>
-#include <Map.hpp>
+//#include <Map.hpp>
 #include <Particles.hpp>
 
 #include <libplayerc++/playerc++.h>

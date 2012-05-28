@@ -17,11 +17,13 @@ class Landmark
 		Landmark();
 		~Landmark();
 		
-		void printLandmarkParticlesPositions();
-		void printLandmarkPosition();
+		void printParticlesPositions();
+		void printPosition();
+		vector<particle> getParticles();
+		void setParticles(vector<particle> particles);
 		
 	private:
-		Particles landmarkParticles;
+		Particles particles;
 		int color;
 };
 

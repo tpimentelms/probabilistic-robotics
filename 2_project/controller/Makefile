@@ -1,7 +1,7 @@
 CXX = g++
 CPPFLAGS = -Wall -O2 -g
 
-SOURCES =  Particles.cpp Map.cpp Landmark.cpp Robot.cpp Image.cpp Controller.cpp
+SOURCES =  Particles.cpp Map.cpp Landmark.cpp Image.cpp Controller.cpp Robot.cpp
 OBJECTS = $(patsubst %.cpp, %.o, $(SOURCES))
 EXECUTABLE = Controller
 

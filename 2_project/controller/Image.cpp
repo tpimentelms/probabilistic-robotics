@@ -34,13 +34,15 @@ Image::~Image()
 {
 }
 
-void Image::showParticlesPositions(Robot r, Landmark l)
+void Image::showParticlesPositions(Robot r, Landmark l1, Landmark l2)
 {
 	vector<particle> robotParticles;
-//	vector<particle> landmarkParticles;
+	vector<particle> landmark1Particles;
+	vector<particle> landmark2Particles;
 	
 	robotParticles = r.getParticles();
-//	landmarkParticles = l.getParticles();
+	landmark1Particles = l1.getParticles();
+	landmark2Particles = l2.getParticles();
 	
 	if (robotParticles.size() == 0)
 	{
@@ -64,6 +66,32 @@ void Image::showParticlesPositions(Robot r, Landmark l)
 		cvSet2D(this->particlesImage, xImage+1, yImage, CV_RGB(0,0,0));
 		cvSet2D(this->particlesImage, xImage, yImage+1, CV_RGB(0,0,0));
 		cvSet2D(this->particlesImage, xImage+1, yImage+1, CV_RGB(0,0,0));
+	}
+	
+	
+	for (counter = 0; counter < landmark1Particles.size(); counter++)
+	{
+		int yImage = int(((landmark1Particles[counter].x + 12.2)/24.4)*(470-42)) + 42;
+		int xImage = int(((-landmark1Particles[counter].y + 12)/24)*(475-20)) + 20;
+//		LOG(LEVEL_DEBUG) << "xImage = " << xImage << " e yImage = " << yImage;
+		
+		cvSet2D(this->particlesImage, xImage, yImage, CV_RGB(255,165,0));
+		cvSet2D(this->particlesImage, xImage+1, yImage, CV_RGB(255,165,0));
+		cvSet2D(this->particlesImage, xImage, yImage+1, CV_RGB(255,165,0));
+		cvSet2D(this->particlesImage, xImage+1, yImage+1, CV_RGB(255,165,0));
+	}
+	
+	
+	for (counter = 0; counter < landmark2Particles.size(); counter++)
+	{
+		int yImage = int(((landmark2Particles[counter].x + 12.2)/24.4)*(470-42)) + 42;
+		int xImage = int(((-landmark2Particles[counter].y + 12)/24)*(475-20)) + 20;
+//		LOG(LEVEL_DEBUG) << "xImage = " << xImage << " e yImage = " << yImage;
+		
+		cvSet2D(this->particlesImage, xImage, yImage, CV_RGB(25,25,255));
+		cvSet2D(this->particlesImage, xImage+1, yImage, CV_RGB(25,25,255));
+		cvSet2D(this->particlesImage, xImage, yImage+1, CV_RGB(25,25,255));
+		cvSet2D(this->particlesImage, xImage+1, yImage+1, CV_RGB(25,25,255));
 	}
 	
 	// show the image

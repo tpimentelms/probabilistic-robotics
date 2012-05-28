@@ -25,7 +25,7 @@ class Image
 		Image();
 		~Image();
 		
-		void showParticlesPositions(Robot r, Landmark l);
+		void showParticlesPositions(Robot r, Landmark l1, Landmark l2);
 		
 	private:
 		IplImage *particlesImage;

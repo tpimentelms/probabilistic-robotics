@@ -8,12 +8,22 @@ Landmark::~Landmark()
 {
 }
 
-void Landmark::printLandmarkParticlesPositions()
+void Landmark::printParticlesPositions()
 {
-	this->landmarkParticles.printParticlesPositions();
+	this->particles.printParticlesPositions();
 }
 
-void Landmark::printLandmarkPosition()
+void Landmark::printPosition()
 {
-	this->landmarkParticles.printParticlesPositionsMeans();
+	this->particles.printParticlesPositionsMeans();
+}
+
+vector<particle> Landmark::getParticles()
+{
+	return this->particles.getParticles();
+}
+
+void Landmark::setParticles(vector<particle> particles)
+{
+	this->particles.setParticles(particles);
 }
