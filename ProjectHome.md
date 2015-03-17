@@ -1,0 +1,1 @@
+This repository will hold all projects for the Probabilist Robotics discipline, taught at Universidade de Brasília, Brazil.
